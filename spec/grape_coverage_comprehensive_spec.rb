@@ -247,6 +247,8 @@ RSpec.describe "Comprehensive coverage for uncovered code paths" do
           false
         end
       end
+      # Stub source to return nil (which will cause source_location check to fail gracefully)
+      allow(endpoint).to receive(:source).and_return(nil)
       allow(endpoint).to receive(:options).and_raise(StandardError, "Options failed")
 
       app = ->(env) { [200, {}, ["OK"]] }
