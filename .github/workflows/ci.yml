@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     
     strategy:
+      fail-fast: false
       matrix:
         include:
           - rails_version: rails-6
@@ -64,14 +65,15 @@ jobs:
           fi
         fi
     
-    - name: Install correct bundler version
+    - name: Determine bundler version
+      id: bundler_version
       run: |
         GEMFILE_NAME=$(echo "${{ matrix.rails_version }}" | tr '-' '_')
         GEMFILE_PATH="gemfiles/${GEMFILE_NAME}.gemfile"
         if [ -f "${GEMFILE_PATH}.lock" ]; then
           BUNDLER_VERSION=$(grep -A 1 "BUNDLED WITH" "${GEMFILE_PATH}.lock" | tail -1 | tr -d ' ')
           if [ -n "$BUNDLER_VERSION" ]; then
-            gem install bundler -v "$BUNDLER_VERSION" --no-document
+            echo "version=$BUNDLER_VERSION" >> $GITHUB_OUTPUT
           fi
         fi
     
@@ -79,6 +81,7 @@ jobs:
       uses: ruby/setup-ruby@v1
       with:
         ruby-version: ${{ matrix.ruby_version }}
+        bundler-version: ${{ steps.bundler_version.outputs.version }}
         bundler-cache: true
     
     - name: Run tests
