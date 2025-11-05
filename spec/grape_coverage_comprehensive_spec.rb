@@ -235,7 +235,18 @@ RSpec.describe "Comprehensive coverage for uncovered code paths" do
       )
 
       endpoint = double("Endpoint")
-      allow(endpoint).to receive(:respond_to?).with(:options).and_return(true)
+      # Stub respond_to? with a default that returns false, then override for specific cases
+      # This handles both :options and :request (and any other) calls
+      allow(endpoint).to receive(:respond_to?) do |method_name, include_private = false|
+        case method_name
+        when :options
+          true
+        when :request
+          false
+        else
+          false
+        end
+      end
       allow(endpoint).to receive(:options).and_raise(StandardError, "Options failed")
 
       app = ->(env) { [200, {}, ["OK"]] }
