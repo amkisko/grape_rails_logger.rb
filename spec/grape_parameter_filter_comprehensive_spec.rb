@@ -86,7 +86,7 @@ RSpec.describe "Parameter filtering" do
     it "returns filter when configured" do
       Rails.application.config.filter_parameters = [:password]
       filter = subscriber.send(:rails_parameter_filter)
-      
+
       # Filter should be available if ParameterFilter is defined
       if defined?(ActiveSupport::ParameterFilter)
         expect(filter).not_to be_nil, "Expected ActiveSupport::ParameterFilter to be available"
