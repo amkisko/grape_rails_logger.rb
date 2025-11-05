@@ -64,6 +64,17 @@ jobs:
           fi
         fi
     
+    - name: Install correct bundler version
+      run: |
+        GEMFILE_NAME=$(echo "${{ matrix.rails_version }}" | tr '-' '_')
+        GEMFILE_PATH="gemfiles/${GEMFILE_NAME}.gemfile"
+        if [ -f "${GEMFILE_PATH}.lock" ]; then
+          BUNDLER_VERSION=$(grep -A 1 "BUNDLED WITH" "${GEMFILE_PATH}.lock" | tail -1 | tr -d ' ')
+          if [ -n "$BUNDLER_VERSION" ]; then
+            gem install bundler -v "$BUNDLER_VERSION" --no-document
+          fi
+        fi
+    
     - name: Install dependencies
       uses: ruby/setup-ruby@v1
       with:
