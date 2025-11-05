@@ -86,8 +86,20 @@ RSpec.describe "Parameter filtering" do
     it "returns filter when configured" do
       Rails.application.config.filter_parameters = [:password]
       filter = subscriber.send(:rails_parameter_filter)
-      expect(filter).to respond_to(:filter)
-      expect(filter).to be_a(ActiveSupport::ParameterFilter) if defined?(ActiveSupport::ParameterFilter)
+      
+      # Filter should be available if ParameterFilter is defined
+      if defined?(ActiveSupport::ParameterFilter)
+        expect(filter).not_to be_nil, "Expected ActiveSupport::ParameterFilter to be available"
+        expect(filter).to respond_to(:filter)
+        expect(filter).to be_a(ActiveSupport::ParameterFilter)
+      elsif defined?(ActionDispatch::Http::ParameterFilter)
+        # Rails 6.0 fallback
+        expect(filter).not_to be_nil
+        expect(filter).to respond_to(:filter)
+      else
+        # No filter available - fallback to manual filtering
+        expect(filter).to be_nil
+      end
     end
 
     it "returns nil when filter_parameters unavailable" do
@@ -97,7 +109,11 @@ RSpec.describe "Parameter filtering" do
 
     it "handles filter creation failure" do
       Rails.application.config.filter_parameters = [:password]
-      allow(ActiveSupport::ParameterFilter).to receive(:new).and_raise(StandardError, "Filter creation failed")
+      if defined?(ActiveSupport::ParameterFilter)
+        allow(ActiveSupport::ParameterFilter).to receive(:new).and_raise(StandardError, "Filter creation failed")
+      elsif defined?(ActionDispatch::Http::ParameterFilter)
+        allow(ActionDispatch::Http::ParameterFilter).to receive(:new).and_raise(StandardError, "Filter creation failed")
+      end
       expect(subscriber.send(:rails_parameter_filter)).to be_nil
     end
   end

@@ -8,11 +8,18 @@ require "simplecov-cobertura"
 SimpleCov.formatter = SimpleCov::Formatter::CoberturaFormatter
 
 require "bundler/setup"
+require "logger" # Required for Ruby 3.1+ where Logger is a separate gem
 require "climate_control"
 require "active_support"
 require "active_support/core_ext/string/inquiry"
 require "active_support/core_ext/object/try"
 require "active_support/notifications"
+# Load parameter filter if available (Rails 6.1+)
+begin
+  require "active_support/parameter_filter"
+rescue LoadError
+  # ParameterFilter not available in this Rails version, that's okay
+end
 require "grape"
 
 Dir[File.expand_path("support/**/*.rb", __dir__)].each { |f| require_relative f }
