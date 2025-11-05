@@ -1,14 +1,14 @@
 require_relative "lib/grape_rails_logger/version"
 
 Gem::Specification.new do |spec|
-  spec.name          = "grape-rails-logger"
+  spec.name          = "grape_rails_logger"
   spec.version       = GrapeRailsLogger::VERSION
   spec.authors       = ["amkisko"]
   spec.email         = ["contact@kiskolabs.com"]
 
   spec.summary       = "Unified JSON request logging for Grape on Rails with DB timing."
   spec.description   = "Rails-compatible, ActiveSupport-integrated logging for Grape APIs, including request context and ActiveRecord timings."
-  spec.homepage      = "https://github.com/amkisko/grape-rails-logger.rb"
+  spec.homepage      = "https://github.com/amkisko/grape_rails_logger.rb"
   spec.license       = "MIT"
 
   spec.files         = Dir.chdir(File.expand_path(__dir__)) do
@@ -18,9 +18,9 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = ">= 2.7"
 
   spec.metadata = {
-    "source_code_uri" => "https://github.com/amkisko/grape-rails-logger.rb",
-    "changelog_uri" => "https://github.com/amkisko/grape-rails-logger.rb/blob/main/CHANGELOG.md",
-    "bug_tracker_uri" => "https://github.com/amkisko/grape-rails-logger.rb/issues"
+    "source_code_uri" => "https://github.com/amkisko/grape_rails_logger.rb",
+    "changelog_uri" => "https://github.com/amkisko/grape_rails_logger.rb/blob/main/CHANGELOG.md",
+    "bug_tracker_uri" => "https://github.com/amkisko/grape_rails_logger.rb/issues"
   }
 
   spec.add_runtime_dependency "activesupport", ">= 6.0", "< 9.0"

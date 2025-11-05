@@ -1,6 +1,6 @@
-# grape-rails-logger
+# grape_rails_logger
 
-[![Gem Version](https://badge.fury.io/rb/grape-rails-logger.svg?v=1.1.0)](https://badge.fury.io/rb/grape-rails-logger) [![Test Status](https://github.com/amkisko/grape-rails-logger.rb/actions/workflows/ci.yml/badge.svg)](https://github.com/amkisko/grape-rails-logger.rb/actions/workflows/ci.yml) [![codecov](https://codecov.io/gh/amkisko/grape-rails-logger.rb/graph/badge.svg?token=RC5T0Y2Z5A)](https://codecov.io/gh/amkisko/grape-rails-logger.rb)
+[![Gem Version](https://badge.fury.io/rb/grape_rails_logger.svg?v=1.1.0)](https://badge.fury.io/rb/grape_rails_logger) [![Test Status](https://github.com/amkisko/grape_rails_logger.rb/actions/workflows/ci.yml/badge.svg)](https://github.com/amkisko/grape_rails_logger.rb/actions/workflows/ci.yml) [![codecov](https://codecov.io/gh/amkisko/grape_rails_logger.rb/graph/badge.svg?token=RC5T0Y2Z5A)](https://codecov.io/gh/amkisko/grape_rails_logger.rb)
 
 Rails-compatible structured logging for Grape APIs with ActiveRecord timing, parameter filtering, and exception tracking.
 
@@ -15,10 +15,10 @@ Sponsored by [Kisko Labs](https://www.kiskolabs.com).
 Add to your Gemfile:
 
 ```ruby
-gem "grape-rails-logger"
+gem "grape_rails_logger"
 ```
 
-Run `bundle install` or `gem install grape-rails-logger`.
+Run `bundle install` or `gem install grape_rails_logger`.
 
 ## Usage
 
@@ -77,7 +77,7 @@ bundle exec standardrb --fix
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/amkisko/grape-rails-logger.rb
+Bug reports and pull requests are welcome on GitHub at https://github.com/amkisko/grape_rails_logger.rb
 
 Contribution policy:
 - New features are not necessarily added to the gem
@@ -92,9 +92,9 @@ Review policy:
 ## Publishing
 
 ```sh
-rm grape-rails-logger-*.gem
-gem build grape-rails-logger.gemspec
-gem push grape-rails-logger-*.gem
+rm grape_rails_logger-*.gem
+gem build grape_rails_logger.gemspec
+gem push grape_rails_logger-*.gem
 ```
 
 Or use the release script:

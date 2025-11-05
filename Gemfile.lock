@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    grape-rails-logger (1.1.3)
+    grape_rails_logger (1.1.3)
       activesupport (>= 6.0, < 9.0)
       grape (>= 1.6, < 3.0)
       railties (>= 6.0, < 9.0)
@@ -257,7 +257,7 @@ PLATFORMS
 DEPENDENCIES
   appraisal (~> 2.4)
   climate_control (~> 1.2)
-  grape-rails-logger!
+  grape_rails_logger!
   memory_profiler (~> 1.0)
   rake (~> 13.0)
   rbs (~> 3.0)

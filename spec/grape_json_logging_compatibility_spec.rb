@@ -2,7 +2,7 @@ require "spec_helper"
 require "rack/mock"
 require_relative "support/logger_stub"
 
-RSpec.describe "grape-rails-logger compatibility with JsonLogging" do
+RSpec.describe "grape_rails_logger compatibility with JsonLogging" do
   let(:logger) { TestLogger.new }
 
   before do

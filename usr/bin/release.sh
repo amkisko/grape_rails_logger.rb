@@ -27,7 +27,7 @@ if [[ $(git diff --shortstat 2> /dev/null | tail -n1) != "" ]]; then
   exit 1
 fi
 
-GEM_NAME="grape-rails-logger"
+GEM_NAME="grape_rails_logger"
 VERSION=$(grep -Eo "VERSION\s*=\s*\".+\"" lib/grape_rails_logger/version.rb  | grep -Eo "[0-9.]{5,}")
 GEM_FILE="$GEM_NAME-$VERSION.gem"
 
