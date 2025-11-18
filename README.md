@@ -100,7 +100,7 @@ gem push grape_rails_logger-*.gem
 Or use the release script:
 
 ```sh
-usr/bin/release.sh
+usr/bin/release.rb
 ```
 
 ## License
