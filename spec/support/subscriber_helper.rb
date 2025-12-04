@@ -13,8 +13,9 @@ module SubscriberHelper
 
   def setup_subscribers
     # Clear any existing subscribers to avoid duplicates
-    # Note: We can't easily unsubscribe, so we'll just add new ones
-    # In tests, this is fine since we control the environment
+    # Replace the notifier with a fresh one to clear all subscribers
+    @old_notifier = ActiveSupport::Notifications.notifier
+    ActiveSupport::Notifications.notifier = ActiveSupport::Notifications::Fanout.new
 
     # Subscribe to Grape request events for logging
     ActiveSupport::Notifications.subscribe("grape.request") do |*args|
@@ -39,6 +40,14 @@ module SubscriberHelper
       end
     end
   end
+
+  def teardown_subscribers
+    # Restore the original notifier if we replaced it
+    if defined?(@old_notifier) && @old_notifier
+      ActiveSupport::Notifications.notifier = @old_notifier
+      @old_notifier = nil
+    end
+  end
 end
 
 RSpec.configure do |config|
@@ -58,7 +67,12 @@ RSpec.configure do |config|
 
     # Set up endpoint patch (automatically patches Grape::Endpoint#build_stack)
     setup_endpoint_patch
-    # Set up subscribers
+    # Set up subscribers (clears existing ones first)
     setup_subscribers
+  end
+
+  config.after(:each) do
+    # Clean up subscribers after each test
+    teardown_subscribers
   end
 end
