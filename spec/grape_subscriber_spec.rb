@@ -44,7 +44,7 @@ RSpec.describe GrapeRailsLogger::GrapeRequestLogSubscriber do
     # Test nil logger scenario - EndpointWrapper creates fallback logger to stdout
     # This is expected behavior: the gem should always have a logger available
     allow(Rails).to receive(:logger).and_return(nil)
-    
+
     app = Class.new(Grape::API) do
       format :json
       get("/test") { raise StandardError, "test" }
