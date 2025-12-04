@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.2.0 (2025-12-04)
+
+- Update Grape dependency to allow 3.0.0+
+
 ## 1.1.2 (2025-11-05)
 
 - Fix autoloading: replace `require_relative` with `require` in main entry file to work when installed from RubyGems
