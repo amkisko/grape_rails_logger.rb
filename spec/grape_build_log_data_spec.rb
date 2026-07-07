@@ -6,7 +6,7 @@ RSpec.describe "build_log_data edge cases" do
 
   it "handles nil duration gracefully" do
     # Create event with nil end time to cause duration calculation to fail
-    start_time = Time.now
+    start_time = Time.zone.now
     event = ActiveSupport::Notifications::Event.new("grape.request", start_time, nil, "1", {})
     request = double("Request", request_method: "GET", path: "/test", host: "example.com", ip: "127.0.0.1", params: {}, env: {})
     env = {}
@@ -16,7 +16,7 @@ RSpec.describe "build_log_data edge cases" do
   end
 
   it "handles missing db_runtime and db_calls" do
-    event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now + 0.01, "1", {})
+    event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now + 0.01, "1", {})
     request = double("Request", request_method: "GET", path: "/test", host: "example.com", ip: "127.0.0.1", params: {}, env: {})
     env = {}
 
@@ -26,7 +26,7 @@ RSpec.describe "build_log_data edge cases" do
   end
 
   it "rounds duration and db_runtime" do
-    start_time = Time.now
+    start_time = Time.zone.now
     end_time = start_time + 0.012345
     event = ActiveSupport::Notifications::Event.new("grape.request", start_time, end_time, "1", {
       db_runtime: 0.056789,
@@ -43,7 +43,7 @@ RSpec.describe "build_log_data edge cases" do
   end
 
   it "extracts request_id from env" do
-    event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now + 0.01, "1", {})
+    event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now + 0.01, "1", {})
     request = double("Request", request_method: "GET", path: "/test", host: "example.com", ip: "127.0.0.1", params: {}, env: {})
     env = {"action_dispatch.request_id" => "req-abc-123"}
 
@@ -52,7 +52,7 @@ RSpec.describe "build_log_data edge cases" do
   end
 
   it "handles nil request_id" do
-    event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now + 0.01, "1", {})
+    event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now + 0.01, "1", {})
     request = double("Request", request_method: "GET", path: "/test", host: "example.com", ip: "127.0.0.1", params: {}, env: {})
     env = {}
 

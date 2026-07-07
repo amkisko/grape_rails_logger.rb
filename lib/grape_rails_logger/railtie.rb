@@ -40,7 +40,7 @@ if defined?(Rails) && defined?(Rails::Railtie)
 
           begin
             subscriber_class = Rails.application.config.grape_rails_logger.subscriber_class || GrapeRequestLogSubscriber
-            subscriber = subscriber_class.new
+            subscriber = GrapeRailsLogger.subscriber_instance_for(subscriber_class)
             subscriber.grape_request(ActiveSupport::Notifications::Event.new(*args))
           rescue => e
             # Last resort: if subscriber creation or invocation fails, log

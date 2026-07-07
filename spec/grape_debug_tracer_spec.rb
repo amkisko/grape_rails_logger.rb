@@ -52,14 +52,14 @@ RSpec.describe GrapeRailsLogger::DebugTracer do
       expect(Rack::MockRequest.new(app).get("/test").status).to eq(200)
 
       # Nil request method and path
-      middleware = GrapeRailsLogger::DebugTracer.new(app)
+      middleware = described_class.new(app)
       env = {"PATH_INFO" => nil, "REQUEST_PATH" => nil, "REQUEST_METHOD" => nil}
       expect { middleware.call!(env) }.not_to raise_error
     end
   end
 
   it "sanitizes file prefix correctly" do
-    middleware = GrapeRailsLogger::DebugTracer.new(->(env) { [200, {}, ["OK"]] })
+    middleware = described_class.new(->(env) { [200, {}, ["OK"]] })
     expect(middleware.send(:sanitize_file_prefix, "GET", "/test/path/:id")).to eq("get__test_path_id")
     expect(middleware.send(:sanitize_file_prefix, "POST", "/api/users/:id/update")).to eq("post__api_users_id_update")
     expect(middleware.send(:sanitize_file_prefix, nil, "/test")).to eq("_test")
@@ -70,7 +70,7 @@ RSpec.describe GrapeRailsLogger::DebugTracer do
   end
 
   it "handles logging errors gracefully" do
-    middleware = GrapeRailsLogger::DebugTracer.new(->(env) { [200, {}, ["OK"]] })
+    middleware = described_class.new(->(env) { [200, {}, ["OK"]] })
     allow(Rails).to receive(:logger).and_raise(StandardError, "Logger failed")
 
     expect { middleware.send(:log_debug_unavailable) }.not_to raise_error

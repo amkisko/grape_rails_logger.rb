@@ -13,6 +13,9 @@ require "grape_rails_logger/endpoint_wrapper"
 require "grape_rails_logger/debug_tracer"
 
 module GrapeRailsLogger
+  # Distinguish "Rails config did not define this key" from a real nil/false value
+  EFFECTIVE_CONFIG_ATTR_MISSING = Object.new.freeze
+
   # Configuration for GrapeRailsLogger
   #
   # When running in Rails, use Rails.application.config.grape_rails_logger instead:
@@ -55,21 +58,52 @@ module GrapeRailsLogger
 
   # Get the effective configuration (Rails-aware)
   #
+  # Caches the synthesized {Config} while Rails config values are unchanged
+  # (avoids allocating a new {Config} on every call).
+  #
   # @return [Config] The active configuration object
   def self.effective_config
     if defined?(Rails) && Rails.application && Rails.application.config.respond_to?(:grape_rails_logger)
-      # Use Rails config if available
       rails_config = Rails.application.config.grape_rails_logger
-      config_obj = Config.new
-      config_obj.enabled = rails_config.enabled if rails_config.respond_to?(:enabled)
-      config_obj.subscriber_class = rails_config.subscriber_class if rails_config.respond_to?(:subscriber_class)
-      config_obj.logger = rails_config.logger if rails_config.respond_to?(:logger)
-      config_obj.tag = rails_config.tag if rails_config.respond_to?(:tag)
-      config_obj
+      signature = rails_effective_config_signature(rails_config)
+      if @rails_effective_config_signature == signature && @rails_effective_config
+        @rails_effective_config
+      else
+        @rails_effective_config_signature = signature
+        @rails_effective_config = build_effective_config_from_rails(rails_config)
+      end
     else
       # Fall back to module-level config for non-Rails usage
       config
     end
+  end
+
+  # @api private
+  def self.build_effective_config_from_rails(rails_config)
+    config_obj = Config.new
+    config_obj.enabled = rails_config.enabled if rails_config.respond_to?(:enabled)
+    config_obj.subscriber_class = rails_config.subscriber_class if rails_config.respond_to?(:subscriber_class)
+    config_obj.logger = rails_config.logger if rails_config.respond_to?(:logger)
+    config_obj.tag = rails_config.tag if rails_config.respond_to?(:tag)
+    config_obj
+  end
+
+  def self.rails_effective_config_signature(rails_config)
+    [
+      rails_config.respond_to?(:enabled) ? rails_config.enabled : EFFECTIVE_CONFIG_ATTR_MISSING,
+      rails_config.respond_to?(:subscriber_class) ? rails_config.subscriber_class : EFFECTIVE_CONFIG_ATTR_MISSING,
+      rails_config.respond_to?(:logger) ? rails_config.logger : EFFECTIVE_CONFIG_ATTR_MISSING,
+      rails_config.respond_to?(:tag) ? rails_config.tag : EFFECTIVE_CONFIG_ATTR_MISSING
+    ]
+  end
+  private_class_method :build_effective_config_from_rails, :rails_effective_config_signature
+
+  # Reuse one subscriber instance per class — {GrapeRequestLogSubscriber} has no per-request ivars.
+  #
+  # @api private
+  def self.subscriber_instance_for(subscriber_class)
+    @subscriber_instances ||= {}
+    @subscriber_instances[subscriber_class] ||= subscriber_class.new
   end
 end
 

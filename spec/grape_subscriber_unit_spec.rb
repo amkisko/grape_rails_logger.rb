@@ -11,7 +11,7 @@ RSpec.describe GrapeRailsLogger::GrapeRequestLogSubscriber do
 
   def build_event(payload_overrides = {})
     endpoint_options = {method: [:GET], path: ["/users/:id"]}
-    source_location = [File.join(Rails.root.to_s, "app/api/users.rb"), 123]
+    source_location = [Rails.root.join("app/api/users.rb").to_s, 123]
 
     endpoint = Object.new
     endpoint.define_singleton_method(:options) { endpoint_options }
@@ -40,7 +40,7 @@ RSpec.describe GrapeRailsLogger::GrapeRequestLogSubscriber do
     }.merge(payload_overrides)
 
     ActiveSupport::Notifications::Event.new(
-      "grape.request", Time.now, Time.now + 0.01, SecureRandom.hex(4), payload
+      "grape.request", Time.zone.now, Time.zone.now + 0.01, SecureRandom.hex(4), payload
     )
   end
 
@@ -68,7 +68,7 @@ RSpec.describe GrapeRailsLogger::GrapeRequestLogSubscriber do
 
   it "derives status from api.endpoint when not present in payload" do
     endpoint_options = {method: [:POST], path: ["/items"]}
-    source_location = [File.join(Rails.root.to_s, "app/api/items.rb"), 5]
+    source_location = [Rails.root.join("app/api/items.rb").to_s, 5]
 
     endpoint = Object.new
     endpoint.define_singleton_method(:options) { endpoint_options }
@@ -92,7 +92,7 @@ RSpec.describe GrapeRailsLogger::GrapeRequestLogSubscriber do
 
   it "computes action for root path" do
     endpoint_options = {method: [:GET], path: ["/"]}
-    source_location = [File.join(Rails.root.to_s, "app/api/root.rb"), 1]
+    source_location = [Rails.root.join("app/api/root.rb").to_s, 1]
 
     endpoint = Object.new
     endpoint.define_singleton_method(:options) { endpoint_options }
@@ -147,7 +147,7 @@ RSpec.describe GrapeRailsLogger::GrapeRequestLogSubscriber do
     }
 
     event = ActiveSupport::Notifications::Event.new(
-      "grape.request", Time.now, Time.now + 0.01, SecureRandom.hex(4), payload
+      "grape.request", Time.zone.now, Time.zone.now + 0.01, SecureRandom.hex(4), payload
     )
 
     # Mock build_request to return nil when there's no endpoint

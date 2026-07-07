@@ -13,7 +13,7 @@ RSpec.describe "Status extraction edge cases" do
       allow(exception).to receive(:is_a?).and_return(false)
 
       # Payload status takes highest priority
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now + 0.01, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now + 0.01, "1", {
         env: {"api.endpoint" => endpoint},
         status: 404,
         exception_object: exception,
@@ -22,7 +22,7 @@ RSpec.describe "Status extraction edge cases" do
       expect(subscriber.send(:extract_status, event)).to eq(404)
 
       # Response status when payload status missing
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now + 0.01, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now + 0.01, "1", {
         env: {"api.endpoint" => endpoint},
         exception_object: exception,
         response: [500, {}, []]
@@ -30,14 +30,14 @@ RSpec.describe "Status extraction edge cases" do
       expect(subscriber.send(:extract_status, event)).to eq(500)
 
       # Exception status when response and payload missing
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now + 0.01, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now + 0.01, "1", {
         env: {"api.endpoint" => endpoint},
         exception_object: exception
       })
       expect(subscriber.send(:extract_status, event)).to eq(403)
 
       # Endpoint status as last resort (only for error statuses >= 400)
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now + 0.01, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now + 0.01, "1", {
         env: {"api.endpoint" => endpoint}
       })
       # Endpoint status 201 won't be used (only >= 400), so defaults to 200
@@ -45,7 +45,7 @@ RSpec.describe "Status extraction edge cases" do
 
       # Test endpoint status with error status (>= 400)
       error_endpoint = double("Endpoint", status: 404, respond_to?: true)
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now + 0.01, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now + 0.01, "1", {
         env: {"api.endpoint" => error_endpoint}
       })
       expect(subscriber.send(:extract_status, event)).to eq(404)
@@ -53,14 +53,14 @@ RSpec.describe "Status extraction edge cases" do
 
     it "handles invalid status values and defaults to 200" do
       endpoint = double("Endpoint", status: "201", respond_to?: true)
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now + 0.01, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now + 0.01, "1", {
         env: {"api.endpoint" => endpoint}
       })
       expect(subscriber.send(:extract_status, event)).to eq(200)
 
       endpoint = double("Endpoint")
       allow(endpoint).to receive(:respond_to?).with(:status).and_return(false)
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now + 0.01, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now + 0.01, "1", {
         env: {"api.endpoint" => endpoint}
       })
       expect(subscriber.send(:extract_status, event)).to eq(200)

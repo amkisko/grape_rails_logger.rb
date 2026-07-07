@@ -11,7 +11,7 @@ RSpec.describe "GrapeRequestLogSubscriber fallback error handling" do
 
   describe "log_fallback_subscriber_error" do
     it "handles event without env payload" do
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {})
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {})
       error = StandardError.new("Subscriber error")
 
       subscriber.send(:log_fallback_subscriber_error, event, error)
@@ -21,7 +21,7 @@ RSpec.describe "GrapeRequestLogSubscriber fallback error handling" do
     end
 
     it "handles event with non-Hash env" do
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {
         env: "not a hash"
       })
       error = StandardError.new("Subscriber error")
@@ -34,7 +34,7 @@ RSpec.describe "GrapeRequestLogSubscriber fallback error handling" do
 
     it "handles build_request failure in fallback" do
       env = {"invalid" => "env"}
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {
         env: env,
         status: nil
       })
@@ -54,7 +54,7 @@ RSpec.describe "GrapeRequestLogSubscriber fallback error handling" do
         "REQUEST_METHOD" => "GET",
         "PATH_INFO" => "/test"
       }
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {
         env: env,
         status: nil
       })
@@ -76,7 +76,7 @@ RSpec.describe "GrapeRequestLogSubscriber fallback error handling" do
         "REQUEST_METHOD" => "POST",
         "PATH_INFO" => "/api/test"
       }
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {
         env: env,
         status: nil,
         exception_object: nil
@@ -96,7 +96,7 @@ RSpec.describe "GrapeRequestLogSubscriber fallback error handling" do
         "REQUEST_METHOD" => "GET",
         "PATH_INFO" => "/test"
       }
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {
         env: env,
         exception_object: original_error
       })
@@ -115,7 +115,7 @@ RSpec.describe "GrapeRequestLogSubscriber fallback error handling" do
         "REQUEST_METHOD" => "GET",
         "PATH_INFO" => "/test"
       }
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {
         env: env,
         exception_object: nil
       })
@@ -132,7 +132,7 @@ RSpec.describe "GrapeRequestLogSubscriber fallback error handling" do
 
     it "handles complete fallback logging failure" do
       env = {"REQUEST_METHOD" => "GET", "PATH_INFO" => "/test"}
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {
         env: env
       })
       error = StandardError.new("Subscriber error")
@@ -148,7 +148,7 @@ RSpec.describe "GrapeRequestLogSubscriber fallback error handling" do
 
     it "extracts status from event payload when available" do
       env = {"REQUEST_METHOD" => "GET", "PATH_INFO" => "/test"}
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {
         env: env,
         status: 418
       })
@@ -165,7 +165,7 @@ RSpec.describe "GrapeRequestLogSubscriber fallback error handling" do
       allow(exception).to receive(:status).and_return(403)
 
       env = {"REQUEST_METHOD" => "GET", "PATH_INFO" => "/test"}
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {
         env: env,
         status: nil,
         exception_object: exception
@@ -198,7 +198,7 @@ RSpec.describe "GrapeRequestLogSubscriber fallback error handling" do
         "PATH_INFO" => "/test",
         "REMOTE_ADDR" => "192.168.1.1"
       }
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {
         env: env
       })
       error = StandardError.new("Subscriber error")
@@ -215,7 +215,7 @@ RSpec.describe "GrapeRequestLogSubscriber fallback error handling" do
         "PATH_INFO" => "/test",
         "REMOTE_ADDR" => "10.0.0.1"
       }
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {
         env: env
       })
       error = StandardError.new("Subscriber error")
@@ -232,14 +232,13 @@ RSpec.describe "GrapeRequestLogSubscriber fallback error handling" do
         "PATH_INFO" => "/test",
         "HTTP_X_FORWARDED_FOR" => "1.2.3.4, 5.6.7.8"
       }
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {
         env: env
       })
       error = StandardError.new("Subscriber error")
 
       # Mock rails_request_for and build_request to return nil so we test the env path
-      allow(subscriber).to receive(:rails_request_for).and_return(nil)
-      allow(subscriber).to receive(:build_request).and_return(nil)
+      allow(subscriber).to receive_messages(rails_request_for: nil, build_request: nil)
 
       subscriber.send(:log_fallback_subscriber_error, event, error)
 
@@ -254,7 +253,7 @@ RSpec.describe "GrapeRequestLogSubscriber fallback error handling" do
         "PATH_INFO" => "/test"
       }
       # Test that when request is nil, it uses env directly (this tests the rescue path indirectly)
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {
         env: env
       })
       error = StandardError.new("Subscriber error")

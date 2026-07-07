@@ -13,7 +13,7 @@ RSpec.describe "GrapeRequestLogSubscriber extraction edge cases" do
     it "returns nil when endpoint has no source" do
       endpoint = double("Endpoint", source: nil)
       env = {"api.endpoint" => endpoint}
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {env: env})
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {env: env})
 
       result = subscriber.send(:extract_controller, event)
       expect(result).to be_nil
@@ -23,7 +23,7 @@ RSpec.describe "GrapeRequestLogSubscriber extraction edge cases" do
       source = double("Source", source_location: nil)
       endpoint = double("Endpoint", source: source)
       env = {"api.endpoint" => endpoint}
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {env: env})
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {env: env})
 
       result = subscriber.send(:extract_controller, event)
       expect(result).to be_nil
@@ -33,7 +33,7 @@ RSpec.describe "GrapeRequestLogSubscriber extraction edge cases" do
       source = double("Source", source_location: [nil, 10])
       endpoint = double("Endpoint", source: source)
       env = {"api.endpoint" => endpoint}
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {env: env})
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {env: env})
 
       result = subscriber.send(:extract_controller, event)
       expect(result).to be_nil
@@ -43,7 +43,7 @@ RSpec.describe "GrapeRequestLogSubscriber extraction edge cases" do
       source = double("Source", source_location: ["/some/path/app/api/users.rb", 10])
       endpoint = double("Endpoint", source: source)
       env = {"api.endpoint" => endpoint}
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {env: env})
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {env: env})
 
       allow(Rails).to receive(:root).and_return(nil)
 
@@ -52,10 +52,10 @@ RSpec.describe "GrapeRequestLogSubscriber extraction edge cases" do
     end
 
     it "uses fallback camelization when ActiveSupport::Inflector is not defined" do
-      source = double("Source", source_location: [File.join(Rails.root.to_s, "app/api/users/profile.rb"), 10])
+      source = double("Source", source_location: [Rails.root.join("app/api/users/profile.rb").to_s, 10])
       endpoint = double("Endpoint", source: source)
       env = {"api.endpoint" => endpoint}
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {env: env})
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {env: env})
 
       # Temporarily hide ActiveSupport::Inflector if it exists
       original_inflector = ActiveSupport.const_get(:Inflector) if defined?(ActiveSupport::Inflector)
@@ -78,7 +78,7 @@ RSpec.describe "GrapeRequestLogSubscriber extraction edge cases" do
       endpoint = double("Endpoint")
       allow(endpoint).to receive(:source).and_raise(StandardError, "Source failed")
       env = {"api.endpoint" => endpoint}
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {env: env})
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {env: env})
 
       result = subscriber.send(:extract_controller, event)
       expect(result).to be_nil
@@ -88,7 +88,7 @@ RSpec.describe "GrapeRequestLogSubscriber extraction edge cases" do
       source = double("Source", source_location: ["/outside/path/file.rb", 10])
       endpoint = double("Endpoint", source: source)
       env = {"api.endpoint" => endpoint}
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {env: env})
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {env: env})
 
       result = subscriber.send(:extract_controller, event)
       # Should still process it, just won't strip Rails root
@@ -100,7 +100,7 @@ RSpec.describe "GrapeRequestLogSubscriber extraction edge cases" do
     it "returns nil when endpoint has no source" do
       endpoint = double("Endpoint", source: nil)
       env = {"api.endpoint" => endpoint}
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {env: env})
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {env: env})
 
       result = subscriber.send(:extract_source_location, event)
       expect(result).to be_nil
@@ -110,7 +110,7 @@ RSpec.describe "GrapeRequestLogSubscriber extraction edge cases" do
       source = double("Source", source_location: nil)
       endpoint = double("Endpoint", source: source)
       env = {"api.endpoint" => endpoint}
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {env: env})
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {env: env})
 
       result = subscriber.send(:extract_source_location, event)
       expect(result).to be_nil
@@ -120,7 +120,7 @@ RSpec.describe "GrapeRequestLogSubscriber extraction edge cases" do
       source = double("Source", source_location: [nil, 10])
       endpoint = double("Endpoint", source: source)
       env = {"api.endpoint" => endpoint}
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {env: env})
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {env: env})
 
       result = subscriber.send(:extract_source_location, event)
       expect(result).to be_nil
@@ -130,7 +130,7 @@ RSpec.describe "GrapeRequestLogSubscriber extraction edge cases" do
       source = double("Source", source_location: ["/outside/path/file.rb", 15])
       endpoint = double("Endpoint", source: source)
       env = {"api.endpoint" => endpoint}
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {env: env})
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {env: env})
 
       result = subscriber.send(:extract_source_location, event)
       expect(result).to eq("/outside/path/file.rb:15")
@@ -140,7 +140,7 @@ RSpec.describe "GrapeRequestLogSubscriber extraction edge cases" do
       endpoint = double("Endpoint")
       allow(endpoint).to receive(:source).and_raise(StandardError, "Source failed")
       env = {"api.endpoint" => endpoint}
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {env: env})
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {env: env})
 
       result = subscriber.send(:extract_source_location, event)
       expect(result).to be_nil
@@ -209,8 +209,7 @@ RSpec.describe "GrapeRequestLogSubscriber extraction edge cases" do
 
     it "excludes route_info symbol key" do
       params_obj = double("Params")
-      allow(params_obj).to receive(:to_unsafe_h).and_return({user: "bob", route_info: {}})
-      allow(params_obj).to receive(:empty?).and_return(false)
+      allow(params_obj).to receive_messages(to_unsafe_h: {user: "bob", route_info: {}}, empty?: false)
       allow(params_obj).to receive(:respond_to?).with(:to_unsafe_h).and_return(true)
 
       request = double("Request", params: params_obj, env: {})
@@ -290,7 +289,7 @@ RSpec.describe "GrapeRequestLogSubscriber extraction edge cases" do
   describe "extract_action" do
     it "returns unknown when endpoint is nil" do
       env = {}
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {env: env})
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {env: env})
 
       result = subscriber.send(:extract_action, event)
       expect(result).to eq("unknown")
@@ -299,7 +298,7 @@ RSpec.describe "GrapeRequestLogSubscriber extraction edge cases" do
     it "returns unknown when endpoint.options is nil" do
       endpoint = double("Endpoint", options: nil)
       env = {"api.endpoint" => endpoint}
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {env: env})
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {env: env})
 
       result = subscriber.send(:extract_action, event)
       expect(result).to eq("unknown")
@@ -308,7 +307,7 @@ RSpec.describe "GrapeRequestLogSubscriber extraction edge cases" do
     it "returns unknown when method is nil" do
       endpoint = double("Endpoint", options: {method: nil, path: ["/users"]})
       env = {"api.endpoint" => endpoint}
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {env: env})
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {env: env})
 
       result = subscriber.send(:extract_action, event)
       expect(result).to eq("unknown")
@@ -317,7 +316,7 @@ RSpec.describe "GrapeRequestLogSubscriber extraction edge cases" do
     it "returns unknown when path is nil" do
       endpoint = double("Endpoint", options: {method: ["GET"], path: nil})
       env = {"api.endpoint" => endpoint}
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {env: env})
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {env: env})
 
       result = subscriber.send(:extract_action, event)
       expect(result).to eq("unknown")
@@ -326,7 +325,7 @@ RSpec.describe "GrapeRequestLogSubscriber extraction edge cases" do
     it "returns method downcase for root path" do
       endpoint = double("Endpoint", options: {method: ["POST"], path: ["/"]})
       env = {"api.endpoint" => endpoint}
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {env: env})
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {env: env})
 
       result = subscriber.send(:extract_action, event)
       expect(result).to eq("post")
@@ -335,7 +334,7 @@ RSpec.describe "GrapeRequestLogSubscriber extraction edge cases" do
     it "returns method downcase for empty path" do
       endpoint = double("Endpoint", options: {method: ["DELETE"], path: [""]})
       env = {"api.endpoint" => endpoint}
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {env: env})
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {env: env})
 
       result = subscriber.send(:extract_action, event)
       expect(result).to eq("delete")
@@ -344,7 +343,7 @@ RSpec.describe "GrapeRequestLogSubscriber extraction edge cases" do
     it "handles path with colons and slashes" do
       endpoint = double("Endpoint", options: {method: ["PUT"], path: ["/api/users/:id/update"]})
       env = {"api.endpoint" => endpoint}
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {env: env})
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {env: env})
 
       result = subscriber.send(:extract_action, event)
       expect(result).to eq("put_api_users_id_update")

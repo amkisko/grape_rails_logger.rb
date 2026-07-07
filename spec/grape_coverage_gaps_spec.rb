@@ -176,7 +176,7 @@ RSpec.describe "Coverage gaps - error handling and edge cases" do
     end
 
     it "handles event without env payload" do
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {})
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {})
       subscriber.grape_request(event)
       # Should not raise
       expect(logger.lines).to be_empty
@@ -184,7 +184,7 @@ RSpec.describe "Coverage gaps - error handling and edge cases" do
 
     it "handles build_request failure" do
       env = {"invalid" => "env"}
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {env: env})
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {env: env})
       subscriber.grape_request(event)
       # Should use fallback logging
       expect(logger.lines.length).to be > 0
@@ -212,7 +212,7 @@ RSpec.describe "Coverage gaps - error handling and edge cases" do
     end
 
     it "handles extract_status with various response formats" do
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {
         response: [404, {}, ["Not Found"]],
         status: nil
       })
@@ -223,7 +223,7 @@ RSpec.describe "Coverage gaps - error handling and edge cases" do
     it "handles extract_status with endpoint status" do
       endpoint = double("Endpoint", status: 422)
       env = {"api.endpoint" => endpoint}
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {
         env: env,
         status: nil
       })
@@ -234,7 +234,7 @@ RSpec.describe "Coverage gaps - error handling and edge cases" do
     it "handles extract_action with empty path" do
       endpoint = double("Endpoint", options: {method: ["GET"], path: ["/"]})
       env = {"api.endpoint" => endpoint}
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {env: env})
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {env: env})
       action = subscriber.send(:extract_action, event)
       expect(action).to eq("get")
     end
@@ -245,7 +245,7 @@ RSpec.describe "Coverage gaps - error handling and edge cases" do
 
       endpoint = double("Endpoint", source: double("Source", source_location: ["/some/path/file.rb", 10]))
       env = {"api.endpoint" => endpoint}
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {env: env})
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {env: env})
 
       controller = subscriber.send(:extract_controller, event)
       expect(controller).to be_nil
@@ -261,7 +261,7 @@ RSpec.describe "Coverage gaps - error handling and edge cases" do
 
       endpoint = double("Endpoint", source: double("Source", source_location: ["/some/path/file.rb", 10]))
       env = {"api.endpoint" => endpoint}
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {env: env})
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {env: env})
 
       location = subscriber.send(:extract_source_location, event)
       expect(location).to eq("/some/path/file.rb:10")
@@ -272,7 +272,7 @@ RSpec.describe "Coverage gaps - error handling and edge cases" do
     end
 
     it "handles log_fallback_subscriber_error with all fallbacks" do
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {
         env: {"REQUEST_METHOD" => "GET", "PATH_INFO" => "/test"},
         status: nil,
         exception_object: nil
@@ -289,7 +289,7 @@ RSpec.describe "Coverage gaps - error handling and edge cases" do
 
     it "handles log_fallback_subscriber_error with original exception" do
       original_error = StandardError.new("Original error")
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now, "1", {
         env: {"REQUEST_METHOD" => "POST", "PATH_INFO" => "/api"},
         exception_object: original_error
       })
@@ -358,8 +358,8 @@ RSpec.describe "Coverage gaps - error handling and edge cases" do
 
     it "handles multiple threads correctly" do
       GrapeRailsLogger::Timings.reset_db_runtime
-      event1 = ActiveSupport::Notifications::Event.new("sql.active_record", Time.now, Time.now + 0.05, "1", {})
-      event2 = ActiveSupport::Notifications::Event.new("sql.active_record", Time.now, Time.now + 0.03, "1", {})
+      event1 = ActiveSupport::Notifications::Event.new("sql.active_record", Time.zone.now, Time.zone.now + 0.05, "1", {})
+      event2 = ActiveSupport::Notifications::Event.new("sql.active_record", Time.zone.now, Time.zone.now + 0.03, "1", {})
 
       GrapeRailsLogger::Timings.append_db_runtime(event1)
       GrapeRailsLogger::Timings.append_db_runtime(event2)

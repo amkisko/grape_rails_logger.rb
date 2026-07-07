@@ -162,12 +162,11 @@ RSpec.describe GrapeRailsLogger::EndpointWrapper do
     let(:payload) { {} }
 
     before do
-      allow(GrapeRailsLogger::Timings).to receive(:db_runtime).and_return(0)
-      allow(GrapeRailsLogger::Timings).to receive(:db_calls).and_return(0)
+      allow(GrapeRailsLogger::Timings).to receive_messages(db_runtime: 0, db_calls: 0)
     end
 
     it "extracts status from response" do
-      wrapper.send(:collect_response_metadata, response, env, payload, Time.now)
+      wrapper.send(:collect_response_metadata, response, env, payload)
 
       expect(payload[:status]).to eq(201)
       expect(payload[:response]).to be(response)
@@ -176,7 +175,7 @@ RSpec.describe GrapeRailsLogger::EndpointWrapper do
     it "handles nil status gracefully" do
       response_obj = Object.new
 
-      wrapper.send(:collect_response_metadata, response_obj, env, payload, Time.now)
+      wrapper.send(:collect_response_metadata, response_obj, env, payload)
 
       expect(payload[:status]).to be_nil
       expect(payload[:response]).to be(response_obj)
@@ -191,7 +190,7 @@ RSpec.describe GrapeRailsLogger::EndpointWrapper do
 
       env[Grape::Env::API_ENDPOINT] = endpoint
 
-      wrapper.send(:collect_response_metadata, response, env, payload, Time.now)
+      wrapper.send(:collect_response_metadata, response, env, payload)
 
       expect(payload[:exception_object]).to be(exception)
     end
@@ -205,7 +204,7 @@ RSpec.describe GrapeRailsLogger::EndpointWrapper do
 
       env[Grape::Env::API_ENDPOINT] = endpoint
 
-      wrapper.send(:collect_response_metadata, response, env, payload, Time.now)
+      wrapper.send(:collect_response_metadata, response, env, payload)
 
       expect(payload[:exception_object]).to be(exception)
     end
@@ -219,7 +218,7 @@ RSpec.describe GrapeRailsLogger::EndpointWrapper do
 
       env[Grape::Env::API_ENDPOINT] = endpoint
 
-      wrapper.send(:collect_response_metadata, response, env, payload, Time.now)
+      wrapper.send(:collect_response_metadata, response, env, payload)
 
       expect(payload[:exception_object]).to be(exception)
     end
@@ -233,7 +232,7 @@ RSpec.describe GrapeRailsLogger::EndpointWrapper do
 
       env[Grape::Env::API_ENDPOINT] = endpoint
 
-      wrapper.send(:collect_response_metadata, response, env, payload, Time.now)
+      wrapper.send(:collect_response_metadata, response, env, payload)
 
       expect(payload[:exception_object]).to be(exception)
     end
@@ -242,13 +241,12 @@ RSpec.describe GrapeRailsLogger::EndpointWrapper do
       exception = StandardError.new("Test error")
       endpoint = double("Endpoint")
       allow(endpoint).to receive(:respond_to?).with(:options).and_return(true)
-      allow(endpoint).to receive(:options).and_return({})
       allow(endpoint).to receive(:respond_to?).with(:exception).and_return(true)
-      allow(endpoint).to receive(:exception).and_return(exception)
+      allow(endpoint).to receive_messages(options: {}, exception: exception)
 
       env[Grape::Env::API_ENDPOINT] = endpoint
 
-      wrapper.send(:collect_response_metadata, response, env, payload, Time.now)
+      wrapper.send(:collect_response_metadata, response, env, payload)
 
       expect(payload[:exception_object]).to be(exception)
     end
@@ -258,13 +256,12 @@ RSpec.describe GrapeRailsLogger::EndpointWrapper do
       endpoint_exception = StandardError.new("Endpoint error")
       endpoint = double("Endpoint")
       allow(endpoint).to receive(:respond_to?).with(:options).and_return(true)
-      allow(endpoint).to receive(:options).and_return(exception: options_exception)
       allow(endpoint).to receive(:respond_to?).with(:exception).and_return(true)
-      allow(endpoint).to receive(:exception).and_return(endpoint_exception)
+      allow(endpoint).to receive_messages(options: {exception: options_exception}, exception: endpoint_exception)
 
       env[Grape::Env::API_ENDPOINT] = endpoint
 
-      wrapper.send(:collect_response_metadata, response, env, payload, Time.now)
+      wrapper.send(:collect_response_metadata, response, env, payload)
 
       expect(payload[:exception_object]).to be(options_exception)
     end
@@ -277,7 +274,7 @@ RSpec.describe GrapeRailsLogger::EndpointWrapper do
 
       env[Grape::Env::API_ENDPOINT] = endpoint
 
-      wrapper.send(:collect_response_metadata, response, env, payload, Time.now)
+      wrapper.send(:collect_response_metadata, response, env, payload)
 
       expect(payload[:exception_object]).to be_nil
     end
@@ -289,7 +286,7 @@ RSpec.describe GrapeRailsLogger::EndpointWrapper do
 
       env[Grape::Env::API_ENDPOINT] = endpoint
 
-      expect { wrapper.send(:collect_response_metadata, response, env, payload, Time.now) }.not_to raise_error
+      expect { wrapper.send(:collect_response_metadata, response, env, payload) }.not_to raise_error
     end
 
     it "handles endpoint.options that is not a Hash" do
@@ -300,26 +297,25 @@ RSpec.describe GrapeRailsLogger::EndpointWrapper do
 
       env[Grape::Env::API_ENDPOINT] = endpoint
 
-      expect { wrapper.send(:collect_response_metadata, response, env, payload, Time.now) }.not_to raise_error
+      expect { wrapper.send(:collect_response_metadata, response, env, payload) }.not_to raise_error
     end
 
     it "handles env that is not a Hash" do
       non_hash_env = "not a hash"
 
-      expect { wrapper.send(:collect_response_metadata, response, non_hash_env, payload, Time.now) }.not_to raise_error
+      expect { wrapper.send(:collect_response_metadata, response, non_hash_env, payload) }.not_to raise_error
     end
 
     it "handles missing API_ENDPOINT in env" do
       env_without_endpoint = {"REQUEST_METHOD" => "GET"}
 
-      expect { wrapper.send(:collect_response_metadata, response, env_without_endpoint, payload, Time.now) }.not_to raise_error
+      expect { wrapper.send(:collect_response_metadata, response, env_without_endpoint, payload) }.not_to raise_error
     end
 
     it "captures DB metrics from Timings" do
-      allow(GrapeRailsLogger::Timings).to receive(:db_runtime).and_return(12.34)
-      allow(GrapeRailsLogger::Timings).to receive(:db_calls).and_return(5)
+      allow(GrapeRailsLogger::Timings).to receive_messages(db_runtime: 12.34, db_calls: 5)
 
-      wrapper.send(:collect_response_metadata, response, env, payload, Time.now)
+      wrapper.send(:collect_response_metadata, response, env, payload)
 
       expect(payload[:db_runtime]).to eq(12.34)
       expect(payload[:db_calls]).to eq(5)

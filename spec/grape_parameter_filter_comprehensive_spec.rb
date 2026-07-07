@@ -175,7 +175,7 @@ RSpec.describe "Parameter filtering" do
 
     it "handles non-string values" do
       expect(subscriber.send(:filter_value, 123)).to eq(123)
-      expect(subscriber.send(:filter_value, true)).to eq(true)
+      expect(subscriber.send(:filter_value, true)).to be(true)
       expect(subscriber.send(:filter_value, nil)).to be_nil
       expect(subscriber.send(:filter_value, [:array])).to eq([:array])
     end

@@ -19,7 +19,6 @@ module GrapeRailsLogger
       return @app.call(env) unless GrapeRailsLogger.effective_config.enabled
 
       logger = resolve_logger
-      start_time = Time.now
       Timings.reset_db_runtime
 
       # Wrap the entire request in ActiveSupport::Notifications
@@ -33,7 +32,7 @@ module GrapeRailsLogger
         # NOW collect all data AFTER Error middleware has processed exceptions
         # At this point, response contains the final Rack response with correct status
         # AND Grape has already parsed the params, so we can safely access endpoint.request.params
-        collect_response_metadata(response, env, payload, start_time)
+        collect_response_metadata(response, env, payload)
 
         # Return the response - subscriber will log it
         response
@@ -51,7 +50,7 @@ module GrapeRailsLogger
       config.logger || (defined?(Rails) && Rails.logger) || Logger.new($stdout)
     end
 
-    def collect_response_metadata(response, env, payload, start_time)
+    def collect_response_metadata(response, env, payload)
       # Extract status from response - this is the FINAL status after Error middleware
       status = extract_status_from_response(response)
       payload[:status] = status if status.is_a?(Integer)

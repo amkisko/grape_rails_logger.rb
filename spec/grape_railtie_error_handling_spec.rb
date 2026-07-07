@@ -16,7 +16,7 @@ RSpec.describe "Railtie error handling" do
       end
 
       # Create an event that will cause an error
-      event_data = ["sql.active_record", Time.now, Time.now + 0.01, "1", {}]
+      event_data = ["sql.active_record", Time.zone.now, Time.zone.now + 0.01, "1", {}]
 
       # Force an error in append_db_runtime
       allow(GrapeRailsLogger::Timings).to receive(:append_db_runtime).and_raise(StandardError, "DB error")
@@ -47,7 +47,7 @@ RSpec.describe "Railtie error handling" do
 
       allow(GrapeRailsLogger::Timings).to receive(:append_db_runtime).and_raise(StandardError, "DB error")
 
-      event_data = ["sql.active_record", Time.now, Time.now + 0.01, "1", {}]
+      event_data = ["sql.active_record", Time.zone.now, Time.zone.now + 0.01, "1", {}]
 
       begin
         GrapeRailsLogger::Timings.append_db_runtime(ActiveSupport::Notifications::Event.new(*event_data))
@@ -73,7 +73,7 @@ RSpec.describe "Railtie error handling" do
         end
       end
 
-      event_data = ["grape.request", Time.now, Time.now + 0.01, "1", {
+      event_data = ["grape.request", Time.zone.now, Time.zone.now + 0.01, "1", {
         env: {"REQUEST_METHOD" => "GET", "PATH_INFO" => "/test"}
       }]
 
@@ -107,7 +107,7 @@ RSpec.describe "Railtie error handling" do
 
       Rails.application.config.grape_rails_logger.subscriber_class = failing_subscriber
 
-      event_data = ["grape.request", Time.now, Time.now + 0.01, "1", {
+      event_data = ["grape.request", Time.zone.now, Time.zone.now + 0.01, "1", {
         env: {"REQUEST_METHOD" => "GET", "PATH_INFO" => "/test"}
       }]
 
@@ -138,7 +138,7 @@ RSpec.describe "Railtie error handling" do
 
       Rails.application.config.grape_rails_logger.subscriber_class = failing_subscriber
 
-      event_data = ["grape.request", Time.now, Time.now + 0.01, "1", {
+      event_data = ["grape.request", Time.zone.now, Time.zone.now + 0.01, "1", {
         env: {"REQUEST_METHOD" => "GET", "PATH_INFO" => "/test"}
       }]
 

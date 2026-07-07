@@ -53,7 +53,7 @@ end
 RSpec.configure do |config|
   config.include SubscriberHelper
 
-  config.before(:each) do
+  config.before do
     # Ensure Rails.application.config.grape_rails_logger is set up
     unless Rails.application.config.respond_to?(:grape_rails_logger)
       config_obj = ActiveSupport::OrderedOptions.new
@@ -71,7 +71,7 @@ RSpec.configure do |config|
     setup_subscribers
   end
 
-  config.after(:each) do
+  config.after do
     # Clean up subscribers after each test
     teardown_subscribers
   end

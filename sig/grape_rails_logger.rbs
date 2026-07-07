@@ -13,6 +13,7 @@ module GrapeRailsLogger
   def self.config: () -> Config
   def self.configure: () { (Config) -> void } -> void
   def self.effective_config: () -> Config
+  def self.subscriber_instance_for: (Class subscriber_class) -> GrapeRequestLogSubscriber
 
   module Timings
     def self.execution_state: () -> untyped

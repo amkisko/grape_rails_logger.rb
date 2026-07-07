@@ -3,7 +3,7 @@ require "spec_helper"
 RSpec.describe GrapeRailsLogger::Timings do
   describe ".reset_db_runtime" do
     it "resets both runtime and calls" do
-      described_class.append_db_runtime(ActiveSupport::Notifications::Event.new("sql.active_record", Time.now, Time.now + 0.1, "1", {}))
+      described_class.append_db_runtime(ActiveSupport::Notifications::Event.new("sql.active_record", Time.zone.now, Time.zone.now + 0.1, "1", {}))
       expect(described_class.db_runtime).to be > 0
       expect(described_class.db_calls).to eq(1)
 
@@ -16,7 +16,7 @@ RSpec.describe GrapeRailsLogger::Timings do
   describe ".append_db_runtime" do
     it "accumulates duration and increments call count" do
       described_class.reset_db_runtime
-      start = Time.now
+      start = Time.zone.now
       end1 = start + 0.05
       end2 = start + 0.03
       event1 = ActiveSupport::Notifications::Event.new("sql.active_record", start, end1, "1", {})

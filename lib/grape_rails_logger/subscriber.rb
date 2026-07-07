@@ -19,7 +19,6 @@ module GrapeRailsLogger
 
     FILTERED_PARAMS = %w[password secret token key].freeze
     PARAM_EXCEPTIONS = %w[controller action format].freeze
-    AD_PARAMS = "action_dispatch.request.parameters"
 
     def grape_request(event)
       return unless event.is_a?(ActiveSupport::Notifications::Event)
@@ -561,7 +560,7 @@ module GrapeRailsLogger
       return {} unless endpoint&.respond_to?(:request) && endpoint.request
 
       endpoint_params = endpoint.request.params
-      return {} if endpoint_params.nil? || endpoint_params.empty?
+      return {} if endpoint_params.blank?
 
       params_hash = if endpoint_params.respond_to?(:to_unsafe_h)
         endpoint_params.to_unsafe_h
@@ -728,7 +727,7 @@ module GrapeRailsLogger
       return nil unless Rails.application.config.respond_to?(:filter_parameters)
 
       filter_parameters = Rails.application.config.filter_parameters
-      return nil if filter_parameters.nil? || filter_parameters.empty?
+      return nil if filter_parameters.blank?
 
       # Prefer ActiveSupport::ParameterFilter (Rails 6.1+)
       # This is the Rails-native parameter filtering system

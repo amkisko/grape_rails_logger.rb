@@ -7,7 +7,7 @@ RSpec.describe "Action extraction edge cases" do
   describe "extract_action" do
     it "handles endpoint without options" do
       endpoint = double("Endpoint", options: nil)
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now + 0.01, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now + 0.01, "1", {
         env: {"api.endpoint" => endpoint}
       })
 
@@ -17,7 +17,7 @@ RSpec.describe "Action extraction edge cases" do
 
     it "handles missing method in options" do
       endpoint = double("Endpoint", options: {path: ["/test"]})
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now + 0.01, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now + 0.01, "1", {
         env: {"api.endpoint" => endpoint}
       })
 
@@ -27,7 +27,7 @@ RSpec.describe "Action extraction edge cases" do
 
     it "handles missing path in options" do
       endpoint = double("Endpoint", options: {method: [:GET]})
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now + 0.01, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now + 0.01, "1", {
         env: {"api.endpoint" => endpoint}
       })
 
@@ -37,7 +37,7 @@ RSpec.describe "Action extraction edge cases" do
 
     it "handles path with route parameters" do
       endpoint = double("Endpoint", options: {method: [:GET], path: ["/users/:id/posts/:post_id"]})
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now + 0.01, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now + 0.01, "1", {
         env: {"api.endpoint" => endpoint}
       })
 
@@ -47,7 +47,7 @@ RSpec.describe "Action extraction edge cases" do
 
     it "handles empty path" do
       endpoint = double("Endpoint", options: {method: [:POST], path: [""]})
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now + 0.01, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now + 0.01, "1", {
         env: {"api.endpoint" => endpoint}
       })
 

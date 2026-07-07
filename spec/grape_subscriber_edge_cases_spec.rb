@@ -11,13 +11,13 @@ RSpec.describe "GrapeRequestLogSubscriber edge cases" do
 
   describe "error handling" do
     it "handles nil env gracefully" do
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now + 0.01, "1", {env: nil})
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now + 0.01, "1", {env: nil})
       expect { subscriber.grape_request(event) }.not_to raise_error
       expect(logger.lines).to be_empty
     end
 
     it "handles non-hash env gracefully" do
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now + 0.01, "1", {env: "not a hash"})
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now + 0.01, "1", {env: "not a hash"})
       expect { subscriber.grape_request(event) }.not_to raise_error
       expect(logger.lines).to be_empty
     end
@@ -25,7 +25,7 @@ RSpec.describe "GrapeRequestLogSubscriber edge cases" do
     it "handles Grape::Request build failure" do
       env = {"REQUEST_METHOD" => "GET", "PATH_INFO" => "/test"}
       allow(::Grape::Request).to receive(:new).and_raise(StandardError.new("Request build failed"))
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now + 0.01, "1", {env: env})
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now + 0.01, "1", {env: env})
 
       # Should not raise error
       expect { subscriber.grape_request(event) }.not_to raise_error
@@ -46,7 +46,7 @@ RSpec.describe "GrapeRequestLogSubscriber edge cases" do
       env = {"REQUEST_METHOD" => "GET", "PATH_INFO" => "/test"}
       request = double("Request", request_method: "GET", path: "/test", host: "example.com", ip: "127.0.0.1", params: {}, env: env)
       allow(::Grape::Request).to receive(:new).and_return(request)
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now + 0.01, "1", {env: env})
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now + 0.01, "1", {env: env})
 
       expect { subscriber.grape_request(event) }.not_to raise_error
     end
@@ -54,7 +54,7 @@ RSpec.describe "GrapeRequestLogSubscriber edge cases" do
 
   describe "extract_status edge cases" do
     it "handles missing status and exception" do
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now + 0.01, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now + 0.01, "1", {
         env: {"REQUEST_METHOD" => "GET", "PATH_INFO" => "/test"}
       })
       status = subscriber.send(:extract_status, event)
@@ -62,7 +62,7 @@ RSpec.describe "GrapeRequestLogSubscriber edge cases" do
     end
 
     it "handles non-integer status values" do
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now + 0.01, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now + 0.01, "1", {
         env: {"REQUEST_METHOD" => "GET", "PATH_INFO" => "/test"},
         status: "not an integer"
       })
@@ -71,7 +71,7 @@ RSpec.describe "GrapeRequestLogSubscriber edge cases" do
     end
 
     it "extracts status from response array" do
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now + 0.01, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now + 0.01, "1", {
         env: {"REQUEST_METHOD" => "GET", "PATH_INFO" => "/test"},
         response: [404, {}, []]
       })
@@ -81,7 +81,7 @@ RSpec.describe "GrapeRequestLogSubscriber edge cases" do
 
     it "extracts status from endpoint when available" do
       endpoint = double("Endpoint", status: 503)
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now + 0.01, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now + 0.01, "1", {
         env: {"REQUEST_METHOD" => "GET", "PATH_INFO" => "/test", "api.endpoint" => endpoint}
       })
       status = subscriber.send(:extract_status, event)
@@ -90,7 +90,7 @@ RSpec.describe "GrapeRequestLogSubscriber edge cases" do
 
     it "handles endpoint without status method" do
       endpoint = double("Endpoint")
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now + 0.01, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now + 0.01, "1", {
         env: {"REQUEST_METHOD" => "GET", "PATH_INFO" => "/test", "api.endpoint" => endpoint}
       })
       status = subscriber.send(:extract_status, event)

@@ -276,14 +276,12 @@ RSpec.describe "Comprehensive coverage for uncovered code paths" do
       request_obj = double("Request")
       # Return a params object that is not empty, but converts to empty hash
       params_obj = double("Params")
-      allow(params_obj).to receive(:empty?).and_return(false)
       allow(params_obj).to receive(:respond_to?).with(:to_unsafe_h).and_return(false)
       allow(params_obj).to receive(:respond_to?).with(:to_h).and_return(true)
-      allow(params_obj).to receive(:to_h).and_return({})
+      allow(params_obj).to receive(:respond_to?).with(:empty?).and_return(true)
+      allow(params_obj).to receive_messages(empty?: false, to_h: {})
       allow(params_obj).to receive(:is_a?).with(Hash).and_return(false)
-      allow(request_obj).to receive(:params).and_return(params_obj)
-      allow(request_obj).to receive(:content_type).and_return("application/vnd.api+json")
-      allow(request_obj).to receive(:env).and_return(env)
+      allow(request_obj).to receive_messages(params: params_obj, content_type: "application/vnd.api+json", env: env)
       allow(endpoint).to receive(:respond_to?).with(:request).and_return(true)
       allow(endpoint).to receive(:request).and_return(request_obj)
 
@@ -323,9 +321,7 @@ RSpec.describe "Comprehensive coverage for uncovered code paths" do
 
       endpoint = double("Endpoint")
       request_obj = double("Request")
-      allow(request_obj).to receive(:params).and_return({})
-      allow(request_obj).to receive(:content_type).and_return("application/json")
-      allow(request_obj).to receive(:env).and_return(env)
+      allow(request_obj).to receive_messages(params: {}, content_type: "application/json", env: env)
       allow(endpoint).to receive(:respond_to?).with(:request).and_return(true)
       allow(endpoint).to receive(:request).and_return(request_obj)
 
@@ -348,9 +344,7 @@ RSpec.describe "Comprehensive coverage for uncovered code paths" do
 
       endpoint = double("Endpoint")
       request_obj = double("Request")
-      allow(request_obj).to receive(:params).and_return({})
-      allow(request_obj).to receive(:content_type).and_return("application/json")
-      allow(request_obj).to receive(:env).and_return(env)
+      allow(request_obj).to receive_messages(params: {}, content_type: "application/json", env: env)
       allow(endpoint).to receive(:respond_to?).with(:request).and_return(true)
       allow(endpoint).to receive(:request).and_return(request_obj)
 
@@ -457,11 +451,10 @@ RSpec.describe "Comprehensive coverage for uncovered code paths" do
       allow(endpoint).to receive(:respond_to?).with(:namespace).and_return(true)
       namespace = double("Namespace")
       allow(namespace).to receive(:options).and_return({})
-      allow(endpoint).to receive(:namespace).and_return(namespace)
       allow(endpoint).to receive(:respond_to?).with(:route).and_return(true)
       route = double("Route")
       allow(route).to receive(:options).and_return({})
-      allow(endpoint).to receive(:route).and_return(route)
+      allow(endpoint).to receive_messages(namespace: namespace, route: route)
 
       # The error should be caught in the begin/rescue block
       # Let's test by making the content_types method raise

@@ -54,9 +54,9 @@ RSpec.describe GrapeRailsLogger::GrapeRequestLogSubscriber do
     expect { Rack::MockRequest.new(app).get("/test") }.to raise_error(StandardError)
 
     # Test subscriber error handling - subscriber should not raise errors
-    subscriber = GrapeRailsLogger::GrapeRequestLogSubscriber.new
+    subscriber = described_class.new
     allow(subscriber).to receive(:build_request).and_raise(StandardError, "Simulated error")
-    event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now + 0.01, "1", {
+    event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now + 0.01, "1", {
       env: {"REQUEST_METHOD" => "GET", "PATH_INFO" => "/test"},
       logger: nil # Explicitly pass nil logger to test subscriber's nil handling
     })

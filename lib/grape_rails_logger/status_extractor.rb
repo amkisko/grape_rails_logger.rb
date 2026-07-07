@@ -22,6 +22,13 @@ module GrapeRailsLogger
     # @param e [Exception] The exception to extract status from
     # @return [Integer] HTTP status code, defaults to 500
     def extract_status_from_exception(e)
+      inline = inline_status_from_exception(e)
+      return inline if inline.is_a?(Integer)
+
+      map_exception_to_status(e.class) || 500
+    end
+
+    def inline_status_from_exception(e)
       return e.status if e.respond_to?(:status) && e.status.is_a?(Integer)
 
       if e.instance_variable_defined?(:@status)
@@ -33,24 +40,28 @@ module GrapeRailsLogger
         return e.options[:status] if e.options[:status].is_a?(Integer)
       end
 
-      # Check common exception type mappings
-      exception_class_name = e.class.name
-      return EXCEPTION_STATUS_MAP[exception_class_name] if EXCEPTION_STATUS_MAP.key?(exception_class_name)
-
-      # Check if any ancestor class matches
-      EXCEPTION_STATUS_MAP.each do |exception_name, status_code|
-        # Use safe_constantize if available (ActiveSupport), otherwise constantize
-        exception_class = if exception_name.respond_to?(:safe_constantize)
-          exception_name.safe_constantize
-        else
-          exception_name.constantize
-        end
-        return status_code if exception_class && e.is_a?(exception_class)
-      rescue NameError
-        # Exception class not available, skip
-      end
-
-      500
+      nil
     end
+
+    # Walk exception class and ancestors — O(ancestors) hash lookups, no constantize per map entry.
+    # Non-Module classes (e.g. test doubles) use a single-element chain.
+    def map_exception_to_status(e_class)
+      chain = if Module === e_class
+        e_class.ancestors
+      else
+        [e_class]
+      end
+      chain.each do |mod|
+        next unless mod.respond_to?(:name)
+
+        name = mod.name
+        next if name.to_s.empty?
+
+        status = EXCEPTION_STATUS_MAP[name]
+        return status if status
+      end
+      nil
+    end
+    private_class_method :inline_status_from_exception, :map_exception_to_status
   end
 end

@@ -15,7 +15,7 @@ RSpec.describe "Controller and source location extraction" do
       endpoint = double("Endpoint")
       source = double("Source", source_location: ["/app/app/api/users.rb", 42])
       allow(endpoint).to receive(:source).and_return(source)
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now + 0.01, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now + 0.01, "1", {
         env: {"api.endpoint" => endpoint}
       })
 
@@ -32,7 +32,7 @@ RSpec.describe "Controller and source location extraction" do
         endpoint = double("Endpoint")
         source = double("Source", source_location: ["/app/app/api/users.rb", 42])
         allow(endpoint).to receive(:source).and_return(source)
-        event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now + 0.01, "1", {
+        event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now + 0.01, "1", {
           env: {"api.endpoint" => endpoint}
         })
 
@@ -49,7 +49,7 @@ RSpec.describe "Controller and source location extraction" do
     end
 
     it "handles missing endpoint" do
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now + 0.01, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now + 0.01, "1", {
         env: {}
       })
       controller = subscriber.send(:extract_controller, event)
@@ -59,7 +59,7 @@ RSpec.describe "Controller and source location extraction" do
     it "handles source location extraction failure" do
       endpoint = double("Endpoint")
       allow(endpoint).to receive(:source).and_raise(StandardError, "source failed")
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now + 0.01, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now + 0.01, "1", {
         env: {"api.endpoint" => endpoint}
       })
 
@@ -73,7 +73,7 @@ RSpec.describe "Controller and source location extraction" do
       endpoint = double("Endpoint")
       source = double("Source", source_location: ["/app/app/api/users.rb", 42])
       allow(endpoint).to receive(:source).and_return(source)
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now + 0.01, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now + 0.01, "1", {
         env: {"api.endpoint" => endpoint}
       })
 
@@ -85,7 +85,7 @@ RSpec.describe "Controller and source location extraction" do
       endpoint = double("Endpoint")
       source = double("Source", source_location: ["/outside/path.rb", 1])
       allow(endpoint).to receive(:source).and_return(source)
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now + 0.01, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now + 0.01, "1", {
         env: {"api.endpoint" => endpoint}
       })
 
@@ -94,7 +94,7 @@ RSpec.describe "Controller and source location extraction" do
     end
 
     it "handles missing source location" do
-      event = ActiveSupport::Notifications::Event.new("grape.request", Time.now, Time.now + 0.01, "1", {
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now + 0.01, "1", {
         env: {}
       })
       loc = subscriber.send(:extract_source_location, event)
