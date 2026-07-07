@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## Unreleased
+
+- Fix HTTP status in Grape request logs for exception subclasses of mapped error types
+- Cache effective Rails configuration to reduce allocation on each log event
+
 ## 1.2.0 (2025-12-04)
 
 - Update Grape dependency to allow 3.0.0+
