@@ -1,0 +1,5 @@
+track_under:
+  - lib
+reject_patterns:
+  - "/lib/grape_rails_logger/version.rb"
+minimum_line_percent: 85

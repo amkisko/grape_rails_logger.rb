@@ -1,15 +1,16 @@
-require "simplecov"
-require "simplecov-cobertura"
-require "simplecov_json_formatter"
+polyrun_cov_measure =
+  ENV["POLYRUN_COVERAGE_DISABLE"] != "1" &&
+  %w[1 true yes].include?(ENV["POLYRUN_COVERAGE"]&.to_s&.downcase)
 
-SimpleCov.start do
-  track_files "{lib,app}/**/*.rb"
-  add_filter "/lib/tasks/"
-  formatter SimpleCov::Formatter::MultiFormatter.new([
-    SimpleCov::Formatter::HTMLFormatter,
-    SimpleCov::Formatter::CoberturaFormatter,
-    SimpleCov::Formatter::JSONFormatter
-  ])
+if polyrun_cov_measure
+  require "coverage"
+  branch = %w[1 true yes].include?(ENV["POLYRUN_COVERAGE_BRANCHES"]&.to_s&.downcase)
+  ::Coverage.start(lines: true, branches: branch)
+end
+
+if polyrun_cov_measure
+  require "polyrun/coverage/rails"
+  Polyrun::Coverage::Rails.start!(root: File.expand_path("..", __dir__))
 end
 
 require "bundler/setup"
@@ -18,6 +19,7 @@ require "climate_control"
 require "active_support"
 require "active_support/core_ext/string/inquiry"
 require "active_support/core_ext/object/try"
+require "active_support/time"
 require "active_support/notifications"
 # Load parameter filter if available (Rails 6.1+)
 begin
@@ -35,7 +37,13 @@ require "grape_rails_logger"
 # This is expected and comes from third-party code, not this gem
 
 RSpec.configure do |config|
+  config.around do |example|
+    Time.use_zone("UTC") { example.run }
+  end
+
   config.expect_with :rspec do |c|
     c.syntax = :expect
   end
 end
+require "polyrun/rspec"
+Polyrun::RSpec.install_failure_fragments!

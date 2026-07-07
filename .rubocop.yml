@@ -60,7 +60,33 @@ RSpec/RepeatedExample:
   Enabled: false
 
 RSpec/DescribeClass:
-  Exclude: []
+  Enabled: false
+
+RSpec/MultipleExpectations:
+  Exclude:
+    - spec/**/*
+
+RSpec/RemoveConst:
+  Enabled: false
+
+RSpec/LeakyConstantDeclaration:
+  Enabled: false
+
+RSpec/MessageSpies:
+  Exclude:
+    - spec/**/*
+
+RSpec/IdenticalEqualityAssertion:
+  Enabled: false
+
+RSpec/ExpectActual:
+  Enabled: false
+
+RSpec/RepeatedDescription:
+  Enabled: false
+
+RSpec/AnyInstance:
+  Enabled: false
 
 RSpec/VerifiedDoubles:
   Enabled: false
@@ -113,3 +139,33 @@ Rails/FindEach:
 Rails/UniqBeforePluck:
   Enabled: true
   Exclude: []
+
+Metrics/ModuleLength:
+  Enabled: true
+  CountAsOne: [array, hash, heredoc, method_call]
+  Max: 200
+Metrics/ClassLength:
+  Enabled: true
+  CountAsOne: [array, hash, heredoc, method_call]
+  Max: 550
+  Exclude:
+    - lib/grape_rails_logger/subscriber.rb
+Metrics/CyclomaticComplexity:
+  Enabled: true
+  Max: 50
+  Exclude:
+    - usr/**/*
+    - lib/grape_rails_logger/subscriber.rb
+Metrics/PerceivedComplexity:
+  Enabled: true
+  Max: 50
+  Exclude:
+    - usr/**/*
+    - lib/grape_rails_logger/subscriber.rb
+Metrics/AbcSize:
+  Enabled: true
+  Max: 90
+  CountRepeatedAttributes: false
+  Exclude:
+    - usr/**/*
+    - lib/grape_rails_logger/subscriber.rb
