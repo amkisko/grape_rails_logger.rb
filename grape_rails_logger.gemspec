@@ -15,7 +15,7 @@ Gem::Specification.new do |spec|
     Dir["lib/**/*", "sig/**/*", "README.md", "LICENSE*", "CHANGELOG.md"].select { |f| File.file?(f) }
   end
   spec.require_paths = ["lib"]
-  spec.required_ruby_version = ">= 2.7"
+  spec.required_ruby_version = ">= 3.4"
 
   spec.metadata = {
     "source_code_uri" => "https://github.com/amkisko/grape_rails_logger.rb",
@@ -23,12 +23,12 @@ Gem::Specification.new do |spec|
     "bug_tracker_uri" => "https://github.com/amkisko/grape_rails_logger.rb/issues"
   }
 
-  spec.add_runtime_dependency "activesupport", ">= 6.0", "< 9.0"
-  spec.add_runtime_dependency "railties", ">= 6.0", "< 9.0"
+  spec.add_runtime_dependency "activesupport", ">= 7.0", "< 9.0"
+  spec.add_runtime_dependency "railties", ">= 7.0", "< 9.0"
   spec.add_runtime_dependency "grape", ">= 1.6", "< 4.0"
 
   spec.add_development_dependency "rspec", "~> 3"
-  spec.add_development_dependency "polyrun", "~> 1.5.0"
+  spec.add_development_dependency "polyrun", ">= 2.2.0"
   spec.add_development_dependency "webmock", "~> 3"
   spec.add_development_dependency "rake", "~> 13"
   spec.add_development_dependency "rspec_junit_formatter", "~> 0.6"
@@ -41,6 +41,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rubocop-rspec", "~> 3.8"
   spec.add_development_dependency "rubocop-thread_safety", "~> 0.7"
   spec.add_development_dependency "appraisal", "~> 2"
+  spec.add_development_dependency "bundler-audit", "~> 0.9"
   spec.add_development_dependency "memory_profiler", "~> 1"
   spec.add_development_dependency "rbs", "~> 3"
 end

@@ -1,6 +1,6 @@
 # grape_rails_logger
 
-[![Gem Version](https://badge.fury.io/rb/grape_rails_logger.svg?v=1.1.0)](https://badge.fury.io/rb/grape_rails_logger) [![Test Status](https://github.com/amkisko/grape_rails_logger.rb/actions/workflows/test.yml/badge.svg)](https://github.com/amkisko/grape_rails_logger.rb/actions/workflows/test.yml) [![codecov](https://codecov.io/gh/amkisko/grape_rails_logger.rb/graph/badge.svg?token=RC5T0Y2Z5A)](https://codecov.io/gh/amkisko/grape_rails_logger.rb)
+[![Gem Version](https://badge.fury.io/rb/grape_rails_logger.svg?v=1.1.0)](https://badge.fury.io/rb/grape_rails_logger) [![Test Status](https://github.com/amkisko/grape_rails_logger.rb/actions/workflows/test.yml/badge.svg)](https://github.com/amkisko/grape_rails_logger.rb/actions/workflows/test.yml) [![codecov](https://codecov.io/gh/amkisko/grape_rails_logger.rb/graph/badge.svg?token=RC5T0Y2Z5A)](https://app.codecov.io/github/amkisko/grape_rails_logger.rb)
 
 Rails-compatible structured logging for Grape APIs with ActiveRecord timing, parameter filtering, and exception tracking.
 
@@ -102,6 +102,20 @@ Or use the release script:
 ```sh
 usr/bin/release.rb
 ```
+
+## Links
+
+- [GitHub](https://github.com/amkisko/grape-rails-logger.rb)
+- [GitLab](https://gitlab.com/amkisko/grape-rails-logger.rb)
+- [RubyGems](https://rubygems.org/gems/grape_rails_logger)
+- [Versions Atom](https://rubygems.org/gems/grape_rails_logger/versions.atom) (feed id `9849778222370`)
+- [Versions Atom (grape-rails-logger)](https://rubygems.org/gems/grape-rails-logger/versions.atom) (feed id `9842277577683`)
+- [libraries.io](https://libraries.io/rubygems/grape_rails_logger)
+- [Deps.dev](https://deps.dev/rubygems/grape_rails_logger)
+- [SonarCloud](https://sonarcloud.io/project/overview?id=amkisko_grape-rails-logger.rb)
+- [Snyk](https://snyk.io/test/github/amkisko/grape-rails-logger.rb)
+- [Codecov](https://app.codecov.io/github/amkisko/grape-rails-logger.rb)
+- [OpenSSF Scorecard](https://scorecard.dev/viewer/?uri=github.com/amkisko/grape-rails-logger.rb)
 
 ## License
 

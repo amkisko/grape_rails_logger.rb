@@ -6,41 +6,75 @@ on:
     branches: [main]
 
 jobs:
-  test:
+  audit:
     runs-on: ubuntu-latest
-    
     strategy:
       fail-fast: false
       matrix:
         include:
-          - gemfile: rails6
-            ruby_version: "3.1"
+          - lock: Gemfile.lock
+            ruby_version: "3.4"
+          - lock: gemfiles/rails72.gemfile.lock
+            ruby_version: "3.4"
+          - lock: gemfiles/rails8ruby34.gemfile.lock
+            ruby_version: "3.4"
+          - lock: gemfiles/rails8ruby4.gemfile.lock
+            ruby_version: "4.0"
+
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby_version }}
+          bundler-cache: true
+          cache-version: audit-${{ matrix.lock }}
+      - name: Update advisory database
+        if: matrix.lock == 'Gemfile.lock'
+        run: bundle exec bundle audit check --update
+      - name: Audit lockfile
+        run: |
+          lock="${{ matrix.lock }}"
+          gemfile="${lock%.lock}"
+          echo "==> ${gemfile}"
+          BUNDLE_GEMFILE="${gemfile}" bundle install --quiet
+          BUNDLE_GEMFILE="${gemfile}" bundle exec bundle audit check
+
+  test:
+    needs: audit
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
           - gemfile: rails72
-            ruby_version: "3.2"
+            ruby_version: "3.4"
           - gemfile: rails8ruby34
             ruby_version: "3.4"
           - gemfile: rails8ruby4
             ruby_version: "4.0"
-          - gemfile: rails8truffleruby
-            ruby_version: "truffleruby"
-    
+
     env:
       BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/${{ matrix.gemfile }}.gemfile
-    
+
     steps:
-    - uses: actions/checkout@v6
-    
-    - name: Set up Ruby
-      uses: ruby/setup-ruby@v1
-      with:
-        ruby-version: ${{ matrix.ruby_version }}
-        bundler-cache: true
-    
-    - name: Run tests
-      run: bundle exec polyrun parallel-rspec --workers 5 --merge-failures
+      - uses: actions/checkout@v6
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby_version }}
+          bundler-cache: true
+
+      - name: Run tests
+        run: |
+          bundle exec polyrun parallel-rspec --workers 5 --merge-failures
+          bundle exec rspec spec/integration
 
   coverage:
     runs-on: ubuntu-latest
+    env:
+      BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/rails8ruby34.gemfile
     steps:
       - uses: actions/checkout@v6
       - uses: ruby/setup-ruby@v1
@@ -59,4 +93,3 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           report_type: test_results
           files: coverage/junit-coverage.xml
-
