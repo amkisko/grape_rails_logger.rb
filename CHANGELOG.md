@@ -1,9 +1,13 @@
 # CHANGELOG
 
-## Unreleased
+## 1.2.1 (2026-07-18)
 
 - Fix HTTP status in Grape request logs for exception subclasses of mapped error types
+- Fix duplicate downstream app dispatch when Grape request instrumentation fails after the handler runs
+- Scope ActiveRecord SQL timing aggregation to in-flight Grape requests only
+- Honor TRACE at request time in DebugTracer so tracing follows the current process environment
 - Cache effective Rails configuration to reduce allocation on each log event
+- Warn in development when Grape request instrumentation fails
 
 ## 1.2.0 (2025-12-04)
 
