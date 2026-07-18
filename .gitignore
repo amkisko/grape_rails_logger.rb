@@ -16,6 +16,8 @@
 /spec/examples.txt
 /tmp/*
 
+/log/*
+
 .DS_Store
 .idea
 .lh
