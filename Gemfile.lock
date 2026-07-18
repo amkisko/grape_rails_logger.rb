@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    grape_rails_logger (1.2.0)
+    grape_rails_logger (1.2.1)
       activesupport (>= 7.0, < 9.0)
       grape (>= 1.6, < 4.0)
       railties (>= 7.0, < 9.0)
