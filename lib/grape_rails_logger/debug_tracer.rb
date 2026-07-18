@@ -12,11 +12,9 @@ module GrapeRailsLogger
   #     use GrapeRailsLogger::DebugTracer  # Only traces when TRACE=1
   #   end
   class DebugTracer < ::Grape::Middleware::Base
-    TRACE_ENABLED = ENV["TRACE"]
-
     def call!(env)
-      # Fast path: if TRACE not enabled, pass through immediately
-      return @app.call(env) unless TRACE_ENABLED
+      # Read TRACE at call time so process env (and test ClimateControl) apply after load
+      return @app.call(env) unless ENV["TRACE"]
 
       # Try to trace, but if anything fails, just pass through
       trace_request(env) do

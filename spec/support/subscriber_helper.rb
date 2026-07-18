@@ -24,7 +24,7 @@ module SubscriberHelper
 
       begin
         subscriber_class = Rails.application.config.grape_rails_logger.subscriber_class || GrapeRailsLogger::GrapeRequestLogSubscriber
-        subscriber = subscriber_class.new
+        subscriber = GrapeRailsLogger.subscriber_instance_for(subscriber_class)
         subscriber.grape_request(ActiveSupport::Notifications::Event.new(*args))
       rescue
         # Never let logging errors break tests

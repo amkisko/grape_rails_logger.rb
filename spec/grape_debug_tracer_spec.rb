@@ -32,8 +32,10 @@ RSpec.describe GrapeRailsLogger::DebugTracer do
         get("/test") { {ok: true} }
       end
 
-      # Should pass through without error
       expect(Rack::MockRequest.new(app).get("/test").status).to eq(200)
+      expect(logger.lines.any? { |line|
+        line.is_a?(String) && line.include?("Debug class not available")
+      }).to be true
     end
   end
 

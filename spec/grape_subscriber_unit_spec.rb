@@ -169,7 +169,7 @@ RSpec.describe GrapeRailsLogger::GrapeRequestLogSubscriber do
     described_class.new.grape_request(event)
 
     entry = logger.lines.find { |o| o.is_a?(Hash) && o[:exception] }
-    expect(entry[:exception][:class]).to match(/StandardError/)
+    expect(entry[:exception][:class]).to include("StandardError")
     expect(entry[:exception][:message]).to eq("conflict")
   end
 

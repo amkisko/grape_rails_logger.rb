@@ -64,7 +64,7 @@ RSpec.describe GrapeRailsLogger::EndpointWrapper do
         wrapper = described_class.new(app, nil)
         env = Rack::MockRequest.env_for("/test")
 
-        expect(GrapeRailsLogger::Timings).to receive(:reset_db_runtime)
+        expect(GrapeRailsLogger::Timings).to receive(:track_grape_request).and_call_original
         wrapper.call(env)
       end
 
@@ -104,6 +104,23 @@ RSpec.describe GrapeRailsLogger::EndpointWrapper do
 
         response = wrapper.call(env)
         expect(response[0]).to eq(200)
+      end
+
+      it "does not call the downstream app twice when metadata collection fails" do
+        call_count = 0
+        counting_app = lambda do |_env|
+          call_count += 1
+          [200, {}, ["OK"]]
+        end
+
+        wrapper = described_class.new(counting_app, nil)
+        allow(wrapper).to receive(:collect_response_metadata).and_raise(StandardError, "Metadata failed")
+
+        env = Rack::MockRequest.env_for("/test")
+        response = wrapper.call(env)
+
+        expect(response[0]).to eq(200)
+        expect(call_count).to eq(1)
       end
     end
   end

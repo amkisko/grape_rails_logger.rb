@@ -8,19 +8,21 @@ RSpec.describe "ActiveRecord integration" do
 
     # Create a mock event and append it
     event = ActiveSupport::Notifications::Event.new("sql.active_record", Time.zone.now, Time.zone.now + 0.05, "1", {})
-    GrapeRailsLogger::Timings.reset_db_runtime
-    GrapeRailsLogger::Timings.append_db_runtime(event)
-    expect(GrapeRailsLogger::Timings.db_runtime).to be > 0
-    expect(GrapeRailsLogger::Timings.db_calls).to eq(1)
+    GrapeRailsLogger::Timings.track_grape_request do
+      GrapeRailsLogger::Timings.append_db_runtime(event)
+      expect(GrapeRailsLogger::Timings.db_runtime).to be > 0
+      expect(GrapeRailsLogger::Timings.db_calls).to eq(1)
+    end
   end
 
   it "handles multiple DB events correctly" do
-    GrapeRailsLogger::Timings.reset_db_runtime
     event1 = ActiveSupport::Notifications::Event.new("sql.active_record", Time.zone.now, Time.zone.now + 0.05, "1", {})
     event2 = ActiveSupport::Notifications::Event.new("sql.active_record", Time.zone.now, Time.zone.now + 0.03, "1", {})
-    GrapeRailsLogger::Timings.append_db_runtime(event1)
-    GrapeRailsLogger::Timings.append_db_runtime(event2)
-    expect(GrapeRailsLogger::Timings.db_runtime).to be > 0.05
-    expect(GrapeRailsLogger::Timings.db_calls).to eq(2)
+    GrapeRailsLogger::Timings.track_grape_request do
+      GrapeRailsLogger::Timings.append_db_runtime(event1)
+      GrapeRailsLogger::Timings.append_db_runtime(event2)
+      expect(GrapeRailsLogger::Timings.db_runtime).to be > 0.05
+      expect(GrapeRailsLogger::Timings.db_calls).to eq(2)
+    end
   end
 end

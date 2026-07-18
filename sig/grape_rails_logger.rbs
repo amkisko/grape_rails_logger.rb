@@ -18,6 +18,8 @@ module GrapeRailsLogger
   module Timings
     def self.execution_state: () -> untyped
     def self.reset_db_runtime: () -> void
+    def self.track_grape_request: () { (void) -> untyped } -> untyped
+    def self.grape_request_active?: () -> bool
     def self.db_runtime: () -> Float
     def self.db_calls: () -> Integer
     def self.append_db_runtime: (ActiveSupport::Notifications::Event event) -> void

@@ -19,6 +19,20 @@ module GrapeRailsLogger
       state[:grape_db_calls] = 0
     end
 
+    def self.track_grape_request
+      state = execution_state
+      previous_tracking = state[:grape_db_tracking]
+      state[:grape_db_tracking] = true
+      reset_db_runtime
+      yield
+    ensure
+      state[:grape_db_tracking] = previous_tracking
+    end
+
+    def self.grape_request_active?
+      !!execution_state[:grape_db_tracking]
+    end
+
     def self.db_runtime
       execution_state[:grape_db_runtime] ||= 0
     end
@@ -29,6 +43,8 @@ module GrapeRailsLogger
 
     def self.append_db_runtime(event)
       state = execution_state
+      return unless state[:grape_db_tracking]
+
       state[:grape_db_runtime] = (state[:grape_db_runtime] || 0) + event.duration
       state[:grape_db_calls] = (state[:grape_db_calls] || 0) + 1
     end

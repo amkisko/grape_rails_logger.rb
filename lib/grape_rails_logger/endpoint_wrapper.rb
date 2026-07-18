@@ -19,27 +19,30 @@ module GrapeRailsLogger
       return @app.call(env) unless GrapeRailsLogger.effective_config.enabled
 
       logger = resolve_logger
-      Timings.reset_db_runtime
+      downstream_response = nil
 
-      # Wrap the entire request in ActiveSupport::Notifications
-      # This ensures we capture the final response AFTER Error middleware processes exceptions
-      ActiveSupport::Notifications.instrument("grape.request", env: env, logger: logger) do |payload|
-        # Call the wrapped app - Error middleware will process exceptions and return final response
-        # NOTE: We do NOT read the body here - Grape will process it and parse params
-        # We'll extract params later from already-parsed sources (endpoint.request.params)
-        response = @app.call(env)
+      Timings.track_grape_request do
+        # Wrap the entire request in ActiveSupport::Notifications
+        # This ensures we capture the final response AFTER Error middleware processes exceptions
+        ActiveSupport::Notifications.instrument("grape.request", env: env, logger: logger) do |payload|
+          # Call the wrapped app - Error middleware will process exceptions and return final response
+          # NOTE: We do NOT read the body here - Grape will process it and parse params
+          # We'll extract params later from already-parsed sources (endpoint.request.params)
+          downstream_response = @app.call(env)
 
-        # NOW collect all data AFTER Error middleware has processed exceptions
-        # At this point, response contains the final Rack response with correct status
-        # AND Grape has already parsed the params, so we can safely access endpoint.request.params
-        collect_response_metadata(response, env, payload)
+          # NOW collect all data AFTER Error middleware has processed exceptions
+          # At this point, response contains the final Rack response with correct status
+          # AND Grape has already parsed the params, so we can safely access endpoint.request.params
+          collect_response_metadata(downstream_response, env, payload)
 
-        # Return the response - subscriber will log it
-        response
+          # Return the response - subscriber will log it
+          downstream_response
+        end
       end
     rescue => e
-      # If notifications fail, still process the request
       handle_instrumentation_error(e)
+      return downstream_response if downstream_response
+
       @app.call(env)
     end
 
@@ -92,7 +95,11 @@ module GrapeRailsLogger
     end
 
     def handle_instrumentation_error(error)
-      # Silently handle - don't break requests
+      return unless defined?(Rails) && Rails.env.development?
+
+      resolve_logger.warn("GrapeRailsLogger: instrumentation failed - #{error.class}: #{error.message}")
+    rescue
+      # Never let error reporting break requests
     end
   end
 end

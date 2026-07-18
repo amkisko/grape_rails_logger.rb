@@ -3,34 +3,47 @@ require "spec_helper"
 RSpec.describe GrapeRailsLogger::Timings do
   describe ".reset_db_runtime" do
     it "resets both runtime and calls" do
-      described_class.append_db_runtime(ActiveSupport::Notifications::Event.new("sql.active_record", Time.zone.now, Time.zone.now + 0.1, "1", {}))
-      expect(described_class.db_runtime).to be > 0
-      expect(described_class.db_calls).to eq(1)
+      described_class.track_grape_request do
+        described_class.append_db_runtime(ActiveSupport::Notifications::Event.new("sql.active_record", Time.zone.now, Time.zone.now + 0.1, "1", {}))
+        expect(described_class.db_runtime).to be > 0
+        expect(described_class.db_calls).to eq(1)
 
-      described_class.reset_db_runtime
-      expect(described_class.db_runtime).to eq(0)
-      expect(described_class.db_calls).to eq(0)
+        described_class.reset_db_runtime
+        expect(described_class.db_runtime).to eq(0)
+        expect(described_class.db_calls).to eq(0)
+      end
     end
   end
 
   describe ".append_db_runtime" do
-    it "accumulates duration and increments call count" do
+    it "accumulates duration and increments call count during a grape request" do
+      described_class.track_grape_request do
+        start = Time.zone.now
+        end1 = start + 0.05
+        end2 = start + 0.03
+        event1 = ActiveSupport::Notifications::Event.new("sql.active_record", start, end1, "1", {})
+        event2 = ActiveSupport::Notifications::Event.new("sql.active_record", start, end2, "2", {})
+
+        described_class.append_db_runtime(event1)
+        runtime1 = described_class.db_runtime
+        expect(runtime1).to be > 0
+        expect(described_class.db_calls).to eq(1)
+
+        described_class.append_db_runtime(event2)
+        runtime2 = described_class.db_runtime
+        expect(runtime2).to be > runtime1
+        expect(described_class.db_calls).to eq(2)
+      end
+    end
+
+    it "ignores sql events outside a grape request" do
       described_class.reset_db_runtime
-      start = Time.zone.now
-      end1 = start + 0.05
-      end2 = start + 0.03
-      event1 = ActiveSupport::Notifications::Event.new("sql.active_record", start, end1, "1", {})
-      event2 = ActiveSupport::Notifications::Event.new("sql.active_record", start, end2, "2", {})
+      event = ActiveSupport::Notifications::Event.new("sql.active_record", Time.zone.now, Time.zone.now + 0.1, "1", {})
 
-      described_class.append_db_runtime(event1)
-      runtime1 = described_class.db_runtime
-      expect(runtime1).to be > 0
-      expect(described_class.db_calls).to eq(1)
+      described_class.append_db_runtime(event)
 
-      described_class.append_db_runtime(event2)
-      runtime2 = described_class.db_runtime
-      expect(runtime2).to be > runtime1
-      expect(described_class.db_calls).to eq(2)
+      expect(described_class.db_runtime).to eq(0)
+      expect(described_class.db_calls).to eq(0)
     end
   end
 
