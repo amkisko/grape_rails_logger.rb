@@ -25,6 +25,4 @@
 *.local
 *.gem
 
-/gemfiles/*.lock
-
 .pray/cache

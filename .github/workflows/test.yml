@@ -27,7 +27,7 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby_version }}
           bundler-cache: true
-          cache-version: audit-${{ matrix.lock }}
+          cache-version: audit-v2-${{ matrix.lock }}
       - name: Update advisory database
         if: matrix.lock == 'Gemfile.lock'
         run: bundle exec bundle audit check --update
