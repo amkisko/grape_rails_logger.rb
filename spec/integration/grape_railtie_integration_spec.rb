@@ -37,7 +37,7 @@ else
       Rack::MockRequest.new(api).get("/railtie-health")
 
       entry = logger.hash_entries.last
-      expect(entry).to include(method: "GET", path: "/railtie-health")
+      expect(entry).to include(method: "GET", path: "/railtie-health", action: "get_railtie-health")
       expect(entry[:status]).to eq(200)
     end
 

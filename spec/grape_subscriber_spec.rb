@@ -25,8 +25,21 @@ RSpec.describe GrapeRailsLogger::GrapeRequestLogSubscriber do
     expect(entry).to be_a(Hash)
     expect(entry[:method]).to eq("POST")
     expect(entry[:path]).to eq("/users")
+    expect(entry[:action]).to eq("post_users")
     expect(entry[:status]).to be_a(Integer)
     expect(entry[:params]).to be_a(Hash)
+  end
+
+  it "logs action from a live Grape route with path parameters" do
+    app = Class.new(Grape::API) do
+      format :json
+      get("/users/:id") { {id: params[:id]} }
+    end
+
+    Rack::MockRequest.new(app).get("/users/42")
+
+    entry = logger.lines.find { |l| l.is_a?(Hash) }
+    expect(entry).to include(method: "GET", path: "/users/42", action: "get_users_id")
   end
 
   it "logs exception info for unhandled exceptions" do
