@@ -45,6 +45,17 @@ RSpec.describe "Action extraction edge cases" do
       expect(action).to eq("get_users_id_posts_post_id")
     end
 
+    it "reads method and path from grape 4 endpoint config when options omits them" do
+      config = double("Config", http_methods: ["GET"], path: ["/users/:id"])
+      endpoint = double("Endpoint", options: {}, config: config)
+      event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now + 0.01, "1", {
+        env: {"api.endpoint" => endpoint}
+      })
+
+      action = subscriber.send(:extract_action, event)
+      expect(action).to eq("get_users_id")
+    end
+
     it "handles empty path" do
       endpoint = double("Endpoint", options: {method: [:POST], path: [""]})
       event = ActiveSupport::Notifications::Event.new("grape.request", Time.zone.now, Time.zone.now + 0.01, "1", {

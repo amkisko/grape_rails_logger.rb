@@ -363,6 +363,7 @@ RSpec.describe "Comprehensive coverage for uncovered code paths" do
       end
 
       endpoint = double("Endpoint")
+      allow(endpoint).to receive(:respond_to?).with(:api).and_return(false)
       allow(endpoint).to receive(:respond_to?).with(:options).and_return(true)
       allow(endpoint).to receive(:options).and_return(for: api_class)
 
@@ -382,6 +383,7 @@ RSpec.describe "Comprehensive coverage for uncovered code paths" do
       end
 
       endpoint = double("Endpoint")
+      allow(endpoint).to receive(:respond_to?).with(:api).and_return(false)
       allow(endpoint).to receive(:respond_to?).with(:options).and_return(true)
       allow(endpoint).to receive(:options).and_return(for: api_class)
 
@@ -396,6 +398,7 @@ RSpec.describe "Comprehensive coverage for uncovered code paths" do
 
     it "handles endpoint without options" do
       endpoint = double("Endpoint")
+      allow(endpoint).to receive(:respond_to?).with(:api).and_return(false)
       allow(endpoint).to receive(:respond_to?).with(:options).and_return(false)
       allow(endpoint).to receive(:respond_to?).with(:namespace).and_return(false)
       allow(endpoint).to receive(:respond_to?).with(:route).and_return(false)
@@ -414,6 +417,7 @@ RSpec.describe "Comprehensive coverage for uncovered code paths" do
       allow(api_class).to receive(:respond_to?).with(:content_types, true).and_return(false)
 
       endpoint = double("Endpoint")
+      allow(endpoint).to receive(:respond_to?).with(:api).and_return(false)
       allow(endpoint).to receive(:respond_to?).with(:options).and_return(true)
       allow(endpoint).to receive(:options).and_return(for: api_class)
 
@@ -432,6 +436,7 @@ RSpec.describe "Comprehensive coverage for uncovered code paths" do
       allow(api_class).to receive(:content_types).and_return("not a hash")
 
       endpoint = double("Endpoint")
+      allow(endpoint).to receive(:respond_to?).with(:api).and_return(false)
       allow(endpoint).to receive(:respond_to?).with(:options).and_return(true)
       allow(endpoint).to receive(:options).and_return(for: api_class)
 
@@ -446,6 +451,7 @@ RSpec.describe "Comprehensive coverage for uncovered code paths" do
 
     it "handles errors in content_types extraction" do
       endpoint = double("Endpoint")
+      allow(endpoint).to receive(:respond_to?).with(:api).and_return(false)
       allow(endpoint).to receive(:respond_to?).with(:options).and_return(true)
       allow(endpoint).to receive(:options).and_return(for: nil)
       allow(endpoint).to receive(:respond_to?).with(:namespace).and_return(true)

@@ -21,7 +21,7 @@ RSpec.describe GrapeRailsLogger::GrapeRequestLogSubscriber do
       src
     end
     endpoint.define_singleton_method(:status) { 202 }
-    endpoint.define_singleton_method(:respond_to?) { |method| [:options, :source, :status].include?(method) }
+    endpoint.define_singleton_method(:respond_to?) { |method, *_| [:options, :source, :status].include?(method) }
 
     env = {
       "REQUEST_METHOD" => "GET",
@@ -78,7 +78,7 @@ RSpec.describe GrapeRailsLogger::GrapeRequestLogSubscriber do
       src
     end
     endpoint.define_singleton_method(:status) { 422 }
-    endpoint.define_singleton_method(:respond_to?) { |method| [:options, :source, :status].include?(method) }
+    endpoint.define_singleton_method(:respond_to?) { |method, *_| [:options, :source, :status].include?(method) }
 
     env = build_event.payload[:env].merge("api.endpoint" => endpoint, Grape::Env::API_ENDPOINT => endpoint)
     event = build_event(response: nil, env: env, status: nil)
@@ -102,7 +102,7 @@ RSpec.describe GrapeRailsLogger::GrapeRequestLogSubscriber do
       src
     end
     endpoint.define_singleton_method(:status) { 200 }
-    endpoint.define_singleton_method(:respond_to?) { |method| [:options, :source, :status].include?(method) }
+    endpoint.define_singleton_method(:respond_to?) { |method, *_| [:options, :source, :status].include?(method) }
 
     # Replace the endpoint in env - extract_action uses "api.endpoint" string key
     env = build_event.payload[:env].dup

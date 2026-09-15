@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 1.2.2 (2026-09-15)
+
+- Allow grape 4.x by expanding the runtime dependency to `< 5.0`
+- Keep request log action names when grape stores path and method on endpoint config instead of `options`
+
 ## 1.2.1 (2026-07-18)
 
 - Fix HTTP status in Grape request logs for exception subclasses of mapped error types

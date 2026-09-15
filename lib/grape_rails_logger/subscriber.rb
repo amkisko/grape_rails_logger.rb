@@ -481,19 +481,50 @@ module GrapeRailsLogger
     def extract_action(event)
       endpoint = event.payload.dig(:env, "api.endpoint")
       return "unknown" unless endpoint
-      return "unknown" unless endpoint.respond_to?(:options)
-      return "unknown" unless endpoint.options
 
-      method = endpoint.options[:method]&.first
-      path = endpoint.options[:path]&.first
+      method = first_list_item(endpoint_http_methods(endpoint))
+      path = first_list_item(endpoint_paths(endpoint))
       return "unknown" unless method && path
 
-      return method.downcase.to_s if path == "/" || path.empty?
+      method_name = method.to_s.downcase
+      return method_name if path == "/" || path.empty?
 
       clean_path = path.to_s.delete_prefix("/").gsub(/[:\/]/, "_").squeeze("_").gsub(/^_+|_+$/, "")
-      "#{method.downcase}_#{clean_path}"
+      "#{method_name}_#{clean_path}"
     rescue
       "unknown"
+    end
+
+    def endpoint_http_methods(endpoint)
+      config = endpoint_config(endpoint)
+      methods = config.http_methods if config.respond_to?(:http_methods)
+      return methods if methods
+      return nil unless endpoint.respond_to?(:options) && endpoint.options
+
+      endpoint.options[:method]
+    end
+
+    def endpoint_paths(endpoint)
+      config = endpoint_config(endpoint)
+      paths = config.path if config.respond_to?(:path)
+      return paths if paths
+      return nil unless endpoint.respond_to?(:options) && endpoint.options
+
+      endpoint.options[:path]
+    end
+
+    # grape 4 stores definition-time verbs and path on protected Endpoint#config
+    def endpoint_config(endpoint)
+      return unless endpoint.respond_to?(:config, true)
+
+      endpoint.send(:config)
+    end
+
+    def first_list_item(value)
+      return value if value.nil? || value.is_a?(String) || value.is_a?(Symbol)
+      return value.first if value.respond_to?(:first)
+
+      value
     end
 
     def extract_controller(event)
@@ -678,7 +709,8 @@ module GrapeRailsLogger
       endpoint = env["api.endpoint"]
       return nil unless endpoint
 
-      api_class = endpoint.respond_to?(:options) ? endpoint.options[:for] : nil
+      api_class = endpoint.respond_to?(:api) ? endpoint.api : nil
+      api_class ||= endpoint.respond_to?(:options) ? endpoint.options[:for] : nil
       api_class ||= endpoint.respond_to?(:namespace) ? endpoint.namespace&.options&.dig(:for) : nil
       api_class ||= endpoint.respond_to?(:route) ? endpoint.route&.options&.dig(:for) : nil
       return nil unless api_class&.respond_to?(:content_types, true)

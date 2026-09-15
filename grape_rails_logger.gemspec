@@ -25,7 +25,7 @@ Gem::Specification.new do |spec|
 
   spec.add_runtime_dependency "activesupport", ">= 7.0", "< 9.0"
   spec.add_runtime_dependency "railties", ">= 7.0", "< 9.0"
-  spec.add_runtime_dependency "grape", ">= 1.6", "< 4.0"
+  spec.add_runtime_dependency "grape", ">= 1.6", "< 5.0"
 
   spec.add_development_dependency "rspec", "~> 3"
   spec.add_development_dependency "polyrun", ">= 2.2.0"
