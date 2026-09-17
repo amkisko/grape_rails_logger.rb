@@ -70,7 +70,7 @@ In Rails 7.1+, the gem uses `ActiveSupport::IsolatedExecutionState` for improved
 ```bash
 bundle install
 bundle exec appraisal generate
-bundle exec rspec
+bundle exec polyrun parallel-rspec --workers 5 --merge-failures
 bin/appraisals
 bundle exec standardrb --fix
 ```
