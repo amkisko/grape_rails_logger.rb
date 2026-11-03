@@ -48,5 +48,12 @@ module GrapeRailsLogger
       state[:grape_db_runtime] = (state[:grape_db_runtime] || 0) + event.duration
       state[:grape_db_calls] = (state[:grape_db_calls] || 0) + 1
     end
+
+    # Railtie SQL subscribe entry: skip Event allocation when no Grape request is tracked.
+    def self.record_sql_notification(*args)
+      return unless grape_request_active?
+
+      append_db_runtime(ActiveSupport::Notifications::Event.new(*args))
+    end
   end
 end

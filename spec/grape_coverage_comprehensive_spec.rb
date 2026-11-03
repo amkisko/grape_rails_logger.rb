@@ -553,19 +553,15 @@ RSpec.describe "Comprehensive coverage for uncovered code paths" do
       expect(result).to eq({"[FILTERED]" => "[max_depth_exceeded]"})
     end
 
-    it "handles filter_value with nil" do
-      result = subscriber.send(:filter_value, nil)
-      expect(result).to be_nil
-    end
-
-    it "handles filter_value with non-String" do
-      result = subscriber.send(:filter_value, 123)
-      expect(result).to eq(123)
-    end
-
-    it "filters values containing sensitive patterns" do
-      result = subscriber.send(:filter_value, "My password is secret123")
-      expect(result).to eq("[FILTERED]")
+    it "filters by sensitive keys only in the manual path" do
+      result = subscriber.send(:filter_parameters_manually, {
+        password: "secret123",
+        note: "My password is secret123",
+        monkey: "ape"
+      })
+      expect(result[:password]).to eq("[FILTERED]")
+      expect(result[:note]).to eq("My password is secret123")
+      expect(result[:monkey]).to eq("ape")
     end
   end
 

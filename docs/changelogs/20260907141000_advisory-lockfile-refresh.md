@@ -1,6 +1,6 @@
 ## Participants
 
-- amkisko
+Andrei Makarov (@amkisko)
 
 ## Decisions
 
@@ -16,5 +16,5 @@
 
 ## Source
 
-- usr/docs/issues/20260907141000_engineering-and-dependency-audit.md
-- usr/docs/dependencies/20260907141000_json-cve-2026-71847.md
+- docs/issues/20260907141000_engineering-and-dependency-audit.md
+- docs/dependencies/20260907141000_json-cve-2026-71847.md

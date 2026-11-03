@@ -6,8 +6,8 @@ Gem::Specification.new do |spec|
   spec.authors = ["Andrei Makarov"]
   spec.email = ["contact@kiskolabs.com"]
 
-  spec.summary = "Unified JSON request logging for Grape on Rails with DB timing."
-  spec.description = "Rails-compatible, ActiveSupport-integrated logging for Grape APIs, including request context and ActiveRecord timings."
+  spec.summary = "Structured request logging for Grape on Rails with ActiveRecord timing."
+  spec.description = "Rails and ActiveSupport request logging for Grape APIs, with request context and ActiveRecord timings."
   spec.homepage = "https://github.com/amkisko/grape_rails_logger.rb"
   spec.license = "MIT"
 

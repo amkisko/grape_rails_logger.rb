@@ -34,7 +34,7 @@ module SubscriberHelper
     # Subscribe to ActiveRecord SQL events for DB timing aggregation
     if defined?(ActiveRecord)
       ActiveSupport::Notifications.subscribe("sql.active_record") do |*args|
-        GrapeRailsLogger::Timings.append_db_runtime(ActiveSupport::Notifications::Event.new(*args))
+        GrapeRailsLogger::Timings.record_sql_notification(*args)
       rescue
         # Never let DB timing errors break tests
       end

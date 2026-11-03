@@ -184,4 +184,34 @@ RSpec.describe GrapeRailsLogger::GrapeRequestLogSubscriber do
     expect(entry).to be_a(Hash)
     expect(entry[:format]).to eq("json")
   end
+
+  it "does not mark logged_successfully when the logger write fails" do
+    failing_logger = Class.new do
+      def info(*)
+        raise StandardError, "write failed"
+      end
+
+      def error(*)
+        raise StandardError, "write failed"
+      end
+
+      def tagged(*)
+        yield
+      end
+    end.new
+
+    event = build_event(logger: failing_logger)
+    described_class.new.grape_request(event)
+
+    expect(event.payload[:logged_successfully]).not_to be(true)
+  end
+
+  it "does not mark logged_successfully when no logger is available" do
+    allow_any_instance_of(described_class).to receive(:resolve_effective_logger).and_return(nil)
+
+    event = build_event(logger: nil)
+    described_class.new.grape_request(event)
+
+    expect(event.payload[:logged_successfully]).not_to be(true)
+  end
 end

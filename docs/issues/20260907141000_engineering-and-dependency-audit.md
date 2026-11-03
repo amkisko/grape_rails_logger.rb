@@ -2,7 +2,7 @@ Recorded 2026-09-07. Library gem. Scheduled CI bundler-audit failed on json CVE-
 
 ## Participants
 
-- amkisko
+Andrei Makarov (@amkisko)
 
 ## Decisions
 
@@ -15,7 +15,7 @@ Recorded 2026-09-07. Library gem. Scheduled CI bundler-audit failed on json CVE-
 ## Effects
 
 - Root and appraisal lockfiles pin json 2.21.2. sqlite3 pins 2.9.6 where that gem was in the graph.
-- Dependency records live under usr/docs/dependencies.
+- Dependency records live under docs/dependencies.
 
 ## Next
 
@@ -23,7 +23,7 @@ Recorded 2026-09-07. Library gem. Scheduled CI bundler-audit failed on json CVE-
 
 ## Source
 
-- usr/docs/changelogs/20260907141000_advisory-lockfile-refresh.md
-- usr/docs/dependencies/20260907141000_json-cve-2026-71847.md
+- docs/changelogs/20260907141000_advisory-lockfile-refresh.md
+- docs/dependencies/20260907141000_json-cve-2026-71847.md
 - https://github.com/ruby/json/security/advisories/GHSA-9hj4-r449-hfvc
 - https://github.com/sparklemotion/sqlite3-ruby/security/advisories/GHSA-mwm8-39rw-8826

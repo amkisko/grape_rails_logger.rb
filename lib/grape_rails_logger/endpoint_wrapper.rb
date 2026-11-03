@@ -20,6 +20,8 @@ module GrapeRailsLogger
 
       logger = resolve_logger
       downstream_response = nil
+      downstream_started = false
+      downstream_completed = false
 
       Timings.track_grape_request do
         # Wrap the entire request in ActiveSupport::Notifications
@@ -28,7 +30,9 @@ module GrapeRailsLogger
           # Call the wrapped app - Error middleware will process exceptions and return final response
           # NOTE: We do NOT read the body here - Grape will process it and parse params
           # We'll extract params later from already-parsed sources (endpoint.request.params)
+          downstream_started = true
           downstream_response = @app.call(env)
+          downstream_completed = true
 
           # NOW collect all data AFTER Error middleware has processed exceptions
           # At this point, response contains the final Rack response with correct status
@@ -41,7 +45,8 @@ module GrapeRailsLogger
       end
     rescue => e
       handle_instrumentation_error(e)
-      return downstream_response if downstream_response
+      return downstream_response if downstream_completed
+      raise if downstream_started
 
       @app.call(env)
     end
@@ -86,11 +91,11 @@ module GrapeRailsLogger
 
       if response.is_a?(Array) && response[0].is_a?(Integer)
         response[0]
+      elsif response.respond_to?(:status) && response.status.is_a?(Integer)
+        response.status
       elsif response.respond_to?(:to_a)
         array = response.to_a
         array[0] if array.is_a?(Array) && array[0].is_a?(Integer)
-      elsif response.respond_to?(:status) && response.status.is_a?(Integer)
-        response.status
       end
     end
 

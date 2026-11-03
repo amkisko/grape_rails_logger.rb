@@ -20,11 +20,6 @@ module GrapeRailsLogger
       trace_request(env) do
         @app.call(env)
       end
-    rescue => e
-      # If tracing fails for any reason, log and pass through
-      # Never break the request flow
-      log_trace_error(e)
-      @app.call(env)
     end
 
     private
@@ -41,19 +36,31 @@ module GrapeRailsLogger
       file_prefix = sanitize_file_prefix(request_method, request_path)
       context = [request_method, request_path].compact.join(" ")
 
-      Debug.new(
-        with_sql: true,
-        with_stack: false,
-        store_file: true,
-        file_prefix: file_prefix,
-        context: context
-      ).trace do
+      downstream_started = false
+      downstream_completed = false
+      downstream_response = nil
+
+      begin
+        Debug.new(
+          with_sql: true,
+          with_stack: false,
+          store_file: true,
+          file_prefix: file_prefix,
+          context: context
+        ).trace do
+          downstream_started = true
+          downstream_response = yield
+          downstream_completed = true
+          downstream_response
+        end
+        downstream_response
+      rescue => e
+        log_trace_error(e)
+        raise if downstream_started && !downstream_completed
+        return downstream_response if downstream_completed
+
         yield
       end
-    rescue => e
-      # If Debug.new or trace fails, log and continue without tracing
-      log_trace_error(e)
-      yield
     end
 
     def sanitize_file_prefix(method, path)

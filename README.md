@@ -1,6 +1,6 @@
 # grape_rails_logger
 
-[![Gem Version](https://badge.fury.io/rb/grape_rails_logger.svg?v=1.1.0)](https://badge.fury.io/rb/grape_rails_logger) [![Test Status](https://github.com/amkisko/grape_rails_logger.rb/actions/workflows/test.yml/badge.svg)](https://github.com/amkisko/grape_rails_logger.rb/actions/workflows/test.yml) [![codecov](https://codecov.io/gh/amkisko/grape_rails_logger.rb/graph/badge.svg?token=RC5T0Y2Z5A)](https://app.codecov.io/github/amkisko/grape_rails_logger.rb)
+[![Gem Version](https://badge.fury.io/rb/grape_rails_logger.svg?v=1.2.3)](https://badge.fury.io/rb/grape_rails_logger) [![Test Status](https://github.com/amkisko/grape_rails_logger.rb/actions/workflows/test.yml/badge.svg)](https://github.com/amkisko/grape_rails_logger.rb/actions/workflows/test.yml) [![codecov](https://codecov.io/gh/amkisko/grape_rails_logger.rb/graph/badge.svg?token=RC5T0Y2Z5A)](https://app.codecov.io/github/amkisko/grape_rails_logger.rb)
 
 Rails-compatible structured logging for Grape APIs with ActiveRecord timing, parameter filtering, and exception tracking.
 
@@ -22,7 +22,7 @@ Run `bundle install` or `gem install grape_rails_logger`.
 
 ## Usage
 
-The gem works automatically in Rails applications. No configuration needed. It automatically patches `Grape::Endpoint#build_stack` to instrument requests and subscribes to `grape.request` notifications, logging structured data via `Rails.logger`. Works with any Rails logger or integrates with `activesupport-json_logging` for JSON output.
+In a Rails app, adding the gem is enough. The Railtie patches `Grape::Endpoint#build_stack`, subscribes to `grape.request`, and writes structured data through `Rails.logger`. Any Rails logger works; pair with `activesupport-json_logging` for JSON lines.
 
 ## What gets logged
 
@@ -30,7 +30,7 @@ Each request logs structured data with:
 - Request metadata: `method`, `path`, `status`, `duration`, `host`, `remote_addr`, `request_id`
 - Route information: `controller`, `action`, `source_location` (file:line)
 - Performance metrics: `duration` (ms), `db` (ActiveRecord query time in ms), `db_calls` (SQL query count)
-- Parameters: `params` (automatically filtered using Rails `filter_parameters`)
+- Parameters: `params` (filtered with Rails `filter_parameters`)
 - Exceptions: `exception` object with `class`, `message`, and `backtrace` (non-production only)
 
 ## Configuration
@@ -43,11 +43,11 @@ Rails.application.config.filter_parameters += [
 ]
 ```
 
-When Rails `ParameterFilter` is not available, the gem falls back to manual filtering that detects sensitive patterns (password, secret, token, key) in parameter keys.
+When Rails `ParameterFilter` is not available, the gem falls back to manual key filtering with patterns aligned to those defaults (`passw`, `secret`, `token`, `_key`, `crypt`, `salt`, `certificate`, `otp`, `ssn`, `authorization`).
 
 ## Debug tracing
 
-Optional `DebugTracer` middleware provides detailed request tracing when the `debug` gem is installed and `TRACE` environment variable is set:
+Optional `DebugTracer` middleware traces requests when the `debug` gem is present and `TRACE` is set:
 
 ```ruby
 class API < Grape::API
@@ -55,15 +55,15 @@ class API < Grape::API
 end
 ```
 
-Enable tracing: `TRACE=1 rails server`. The middleware gracefully degrades if the `debug` gem is not installed.
+Enable tracing: `TRACE=1 rails server`. Without the `debug` gem, the middleware does not start a tracer.
 
 ## Compatibility
 
-- Rails 6.0, 6.1, 7.0, 7.1, 7.2, 8.0+
-- Grape >= 1.6
-- Ruby >= 2.7
+- Rails 7.0, 7.1, 7.2, 8.0+
+- Grape >= 1.6, < 5.0
+- Ruby >= 3.4
 
-In Rails 7.1+, the gem uses `ActiveSupport::IsolatedExecutionState` for improved thread/Fiber safety. In Rails 6-7.0, it falls back to `Thread.current`.
+In Rails 7.1+, request state uses `ActiveSupport::IsolatedExecutionState`. On Rails 7.0, it uses `Thread.current`.
 
 ## Development
 

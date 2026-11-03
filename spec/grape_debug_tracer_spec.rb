@@ -78,4 +78,27 @@ RSpec.describe GrapeRailsLogger::DebugTracer do
     expect { middleware.send(:log_debug_unavailable) }.not_to raise_error
     expect { middleware.send(:log_trace_error, StandardError.new("Trace failed")) }.not_to raise_error
   end
+
+  it "does not retry the downstream request when the application raises" do
+    debugger_class = Class.new do
+      def initialize(**)
+      end
+
+      def trace
+        yield
+      end
+    end
+    stub_const("Debug", debugger_class)
+
+    attempts = 0
+    app = lambda do |_env|
+      attempts += 1
+      raise "downstream failed"
+    end
+
+    ClimateControl.modify TRACE: "1" do
+      expect { described_class.new(app).call!({}) }.to raise_error("downstream failed")
+    end
+    expect(attempts).to eq(1)
+  end
 end

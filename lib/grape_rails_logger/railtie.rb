@@ -20,7 +20,7 @@ if defined?(Rails) && defined?(Rails::Railtie)
         # Only subscribe if ActiveRecord is loaded (optional dependency)
         if defined?(ActiveRecord)
           ActiveSupport::Notifications.subscribe("sql.active_record") do |*args|
-            GrapeRailsLogger::Timings.append_db_runtime(ActiveSupport::Notifications::Event.new(*args))
+            GrapeRailsLogger::Timings.record_sql_notification(*args)
           rescue => e
             # Never let DB timing errors break anything
             # Only warn in development to avoid noise in production

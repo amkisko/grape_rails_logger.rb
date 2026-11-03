@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 1.2.3 (2026-11-03)
+
+- Keep tracing and request instrumentation from dispatching a failed request more than once
+- Return false from `safe_log` / `log_data` when the logger write fails or no logger exists
+- Filter manual params by key only; expand key patterns toward Rails `filter_parameters` defaults
+- Prefer `#status` over `#to_a` when reading a non-Array Rack response status
+- Skip `ActiveSupport::Notifications::Event` allocation for SQL outside an active Grape request
+- Fail closed when release confirmation input reaches EOF
+- Require a CHANGELOG version heading before release; run tests on pull requests to `main`
+
 ## 1.2.2 (2026-09-15)
 
 - Allow grape 4.x by expanding the runtime dependency to `< 5.0`

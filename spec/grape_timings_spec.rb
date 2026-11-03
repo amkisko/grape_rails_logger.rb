@@ -47,6 +47,30 @@ RSpec.describe GrapeRailsLogger::Timings do
     end
   end
 
+  describe ".record_sql_notification" do
+    it "does not build an Event when no grape request is active" do
+      described_class.reset_db_runtime
+      expect(ActiveSupport::Notifications::Event).not_to receive(:new)
+
+      described_class.record_sql_notification(
+        "sql.active_record", Time.zone.now, Time.zone.now + 0.1, "1", {}
+      )
+
+      expect(described_class.db_runtime).to eq(0)
+      expect(described_class.db_calls).to eq(0)
+    end
+
+    it "records duration during a grape request" do
+      described_class.track_grape_request do
+        described_class.record_sql_notification(
+          "sql.active_record", Time.zone.now, Time.zone.now + 0.05, "1", {}
+        )
+        expect(described_class.db_calls).to eq(1)
+        expect(described_class.db_runtime).to be > 0
+      end
+    end
+  end
+
   describe ".execution_state" do
     it "uses IsolatedExecutionState when available" do
       if defined?(ActiveSupport::IsolatedExecutionState)

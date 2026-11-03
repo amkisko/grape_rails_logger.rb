@@ -23,6 +23,7 @@ module GrapeRailsLogger
     def self.db_runtime: () -> Float
     def self.db_calls: () -> Integer
     def self.append_db_runtime: (ActiveSupport::Notifications::Event event) -> void
+    def self.record_sql_notification: (*untyped args) -> void
   end
 
   module StatusExtractor

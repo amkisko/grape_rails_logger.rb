@@ -28,3 +28,4 @@ spec/grape_subscriber_spec.rb
 spec/grape_subscriber_unit_spec.rb
 spec/grape_timings_spec.rb
 spec/integration/grape_railtie_integration_spec.rb
+spec/release_version_check_spec.rb

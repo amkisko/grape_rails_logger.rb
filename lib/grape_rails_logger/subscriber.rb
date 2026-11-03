@@ -17,7 +17,8 @@ module GrapeRailsLogger
       end
     end
 
-    FILTERED_PARAMS = %w[password secret token key].freeze
+    # Key substrings aligned with Rails filter_parameters defaults (key-only; values pass through).
+    FILTERED_PARAMS = %w[passw secret token _key crypt salt certificate otp ssn authorization].freeze
     PARAM_EXCEPTIONS = %w[controller action format].freeze
 
     def grape_request(event)
@@ -134,12 +135,6 @@ module GrapeRailsLogger
       else
         safe_log(:info, data, logger)
       end
-      # Mark that we successfully logged to prevent fallback from duplicating
-      true
-    rescue => e
-      # If logging itself fails, don't log again in fallback
-      # Mark that we tried to log so fallback knows not to duplicate
-      raise LoggingError.new(e)
     end
 
     def build_exception_data(exception)
@@ -157,11 +152,9 @@ module GrapeRailsLogger
     end
 
     def safe_log(level, data, logger = nil)
-      # Get logger from parameter, config, or default to Rails.logger
       effective_logger = logger || resolve_effective_logger
-      return unless effective_logger
+      return false unless effective_logger
 
-      # Get tag from config
       tag = resolve_tag
 
       if effective_logger.respond_to?(:tagged) && tag
@@ -171,12 +164,12 @@ module GrapeRailsLogger
       else
         effective_logger.public_send(level, data)
       end
+      true
     rescue => e
-      # Fallback to stderr if logging fails - never raise
-      # Only warn in development to avoid noise in production
       if defined?(Rails) && Rails.respond_to?(:env) && Rails.env.development?
         Rails.logger&.warn("GrapeRailsLogger log error: #{e.message}")
       end
+      false
     end
 
     def resolve_tag
@@ -793,9 +786,9 @@ module GrapeRailsLogger
           when Hash
             filter_parameters_manually(value, depth + 1)
           when Array
-            value.first(100).map { |v| v.is_a?(Hash) ? filter_parameters_manually(v, depth + 1) : filter_value(v) }
+            value.first(100).map { |v| v.is_a?(Hash) ? filter_parameters_manually(v, depth + 1) : v }
           else
-            filter_value(value)
+            value
           end
         end
       end
@@ -803,14 +796,6 @@ module GrapeRailsLogger
       # Don't log - just return empty hash
       # Logging happens only in subscriber
       {}
-    end
-
-    def filter_value(value)
-      return value unless value.is_a?(String)
-      value_lower = value.downcase
-      return "[FILTERED]" if FILTERED_PARAMS.any? { |param| value_lower.include?(param.downcase) }
-
-      value
     end
 
     def should_filter_key?(key)

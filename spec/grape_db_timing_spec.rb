@@ -22,7 +22,7 @@ RSpec.describe "DB timing aggregation" do
     received = nil
     req_sub = ActiveSupport::Notifications.subscribe("grape.request") { |*args| received = ActiveSupport::Notifications::Event.new(*args) }
     sql_sub = ActiveSupport::Notifications.subscribe("sql.active_record") do |*args|
-      GrapeRailsLogger::Timings.append_db_runtime(ActiveSupport::Notifications::Event.new(*args))
+      GrapeRailsLogger::Timings.record_sql_notification(*args)
     end
 
     Rack::MockRequest.new(app).get("/db")

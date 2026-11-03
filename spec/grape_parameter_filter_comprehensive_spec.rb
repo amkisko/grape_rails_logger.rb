@@ -132,12 +132,15 @@ RSpec.describe "Parameter filtering" do
       expect(result[:user][:name]).to eq("John")
     end
 
-    it "filters values containing sensitive substrings" do
-      expect(subscriber.send(:filter_value, "contains password here")).to eq("[FILTERED]")
-      expect(subscriber.send(:filter_value, "my_secret_key")).to eq("[FILTERED]")
-      expect(subscriber.send(:filter_value, "auth_token_123")).to eq("[FILTERED]")
-      expect(subscriber.send(:filter_value, "api_key_value")).to eq("[FILTERED]")
-      expect(subscriber.send(:filter_value, "username")).to eq("username")
+    it "leaves values unchanged when the key is not sensitive" do
+      result = subscriber.send(:filter_parameters_manually, {
+        note: "contains password here",
+        animal: "monkey",
+        username: "alice"
+      })
+      expect(result[:note]).to eq("contains password here")
+      expect(result[:animal]).to eq("monkey")
+      expect(result[:username]).to eq("alice")
     end
 
     it "filters keys containing sensitive substrings" do
@@ -145,7 +148,11 @@ RSpec.describe "Parameter filtering" do
       expect(subscriber.send(:should_filter_key?, "api_secret")).to be true
       expect(subscriber.send(:should_filter_key?, "access_token")).to be true
       expect(subscriber.send(:should_filter_key?, "private_key")).to be true
+      expect(subscriber.send(:should_filter_key?, "authorization")).to be true
+      expect(subscriber.send(:should_filter_key?, "otp_code")).to be true
+      expect(subscriber.send(:should_filter_key?, "ssn")).to be true
       expect(subscriber.send(:should_filter_key?, "username")).to be false
+      expect(subscriber.send(:should_filter_key?, "monkey")).to be false
     end
 
     it "respects limits and handles edge cases" do
@@ -173,11 +180,17 @@ RSpec.describe "Parameter filtering" do
       expect(subscriber.send(:filter_parameters_manually, params)["items"].size).to eq(100)
     end
 
-    it "handles non-string values" do
-      expect(subscriber.send(:filter_value, 123)).to eq(123)
-      expect(subscriber.send(:filter_value, true)).to be(true)
-      expect(subscriber.send(:filter_value, nil)).to be_nil
-      expect(subscriber.send(:filter_value, [:array])).to eq([:array])
+    it "preserves non-string values for non-sensitive keys" do
+      result = subscriber.send(:filter_parameters_manually, {
+        count: 123,
+        enabled: true,
+        nested: nil,
+        tags: [:array]
+      })
+      expect(result[:count]).to eq(123)
+      expect(result[:enabled]).to be(true)
+      expect(result[:nested]).to be_nil
+      expect(result[:tags]).to eq([:array])
     end
   end
 end

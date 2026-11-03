@@ -122,6 +122,19 @@ RSpec.describe GrapeRailsLogger::EndpointWrapper do
         expect(response[0]).to eq(200)
         expect(call_count).to eq(1)
       end
+
+      it "does not retry the downstream request when the application raises" do
+        call_count = 0
+        failing_app = lambda do |_env|
+          call_count += 1
+          raise "downstream failed"
+        end
+
+        wrapper = described_class.new(failing_app, nil)
+
+        expect { wrapper.call(Rack::MockRequest.env_for("/test")) }.to raise_error("downstream failed")
+        expect(call_count).to eq(1)
+      end
     end
   end
 
@@ -406,7 +419,7 @@ RSpec.describe GrapeRailsLogger::EndpointWrapper do
       expect(status).to be_nil
     end
 
-    it "handles response with both to_a and status method (prefers to_a)" do
+    it "handles response with both to_a and status method (prefers status)" do
       response_obj = Class.new do
         def to_a
           [499, {}, []]
@@ -418,7 +431,7 @@ RSpec.describe GrapeRailsLogger::EndpointWrapper do
       end.new
 
       status = wrapper.send(:extract_status_from_response, response_obj)
-      expect(status).to eq(499)
+      expect(status).to eq(422)
     end
   end
 
