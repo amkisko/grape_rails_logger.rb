@@ -1,7 +1,10 @@
-.PHONY: release lint test audit clean bench-load
+.PHONY: release lint test audit clean bench-load bench-fiber
 
 bench-load:
 	bundle exec ruby benchmarks/load.rb
+
+bench-fiber:
+	SCENARIO=fiber bundle exec ruby benchmarks/load.rb
 
 release:
 	ruby usr/bin/release.rb

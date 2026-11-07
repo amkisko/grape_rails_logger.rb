@@ -16,6 +16,8 @@
 #
 # Scenarios: flat params, nested params (+ ParameterFilter deep_dup),
 # synthetic sql.active_record timings aggregation.
+# Fiber scenario (SCENARIO=fiber): concurrent Fiber DB timings under
+# ActiveSupport::IsolatedExecutionState isolation_level :fiber vs :thread when available.
 
 require "bundler/setup"
 
@@ -63,14 +65,22 @@ module GrapeRailsLogger
       module_function
 
       def run!
+        scenario = ENV.fetch("SCENARIO", "matrix")
         reps = env_int("BENCH_REPS", 280)
         param_keys = env_int("PARAM_KEYS", 32)
         sql_events = env_int("SQL_EVENTS", 34)
         factor = ENV.fetch("TARGET_FACTOR", Polyrun::Benchmark::Pressure::DEFAULT_TARGET_FACTOR.to_s).to_f
 
-        puts "GrapeRailsLogger pressure matrix reps=#{reps} param_keys=#{param_keys} sql_events=#{sql_events} target_factor=#{factor}"
-
-        results = run_matrix!(reps, param_keys, sql_events, factor)
+        results =
+          case scenario
+          when "matrix"
+            puts "GrapeRailsLogger pressure matrix reps=#{reps} param_keys=#{param_keys} sql_events=#{sql_events} target_factor=#{factor}"
+            run_matrix!(reps, param_keys, sql_events, factor)
+          when "fiber"
+            run_fiber_matrix!
+          else
+            raise ArgumentError, "Unknown SCENARIO=#{scenario.inspect} (matrix|fiber)"
+          end
 
         root = File.expand_path("..", __dir__)
         path = Polyrun::Benchmark::Pressure.write_results!(results, repository_root: root)
@@ -78,6 +88,88 @@ module GrapeRailsLogger
         puts "wrote #{path}"
         code = (results.any? { |row| row["pass"] == false }) ? 1 : 0
         exit code
+      end
+
+      def run_fiber_matrix!
+        fiber_n = env_int("BENCH_FIBER_N", 3000)
+        fiber_count = env_int("BENCH_FIBER_COUNT", 8)
+        sql_events = env_int("SQL_EVENTS", 8)
+        puts "GrapeRailsLogger fiber bench fiber_n=#{fiber_n} fiber_count=#{fiber_count} sql_events=#{sql_events}"
+
+        unless defined?(ActiveSupport::IsolatedExecutionState)
+          warn "ActiveSupport::IsolatedExecutionState unavailable; fiber scenario needs Rails 7.1+"
+          return []
+        end
+
+        [
+          measure_fiber_sql!("baseline_fiber_sequential", fiber_n, sql_events: sql_events, concurrent: false, isolation: :fiber),
+          measure_fiber_sql!("baseline_fiber_concurrent", fiber_n, sql_events: sql_events, concurrent: true, fiber_count: fiber_count, isolation: :fiber),
+          measure_fiber_sql!("baseline_thread_concurrent_fibers", fiber_n, sql_events: sql_events, concurrent: true, fiber_count: fiber_count, isolation: :thread)
+        ]
+      end
+
+      def with_ies_isolation(level)
+        previous = ActiveSupport::IsolatedExecutionState.isolation_level
+        ActiveSupport::IsolatedExecutionState.isolation_level = level
+        yield
+      ensure
+        ActiveSupport::IsolatedExecutionState.isolation_level = previous
+        GrapeRailsLogger::Timings.reset_db_runtime
+      end
+
+      def measure_fiber_sql!(label, ops, sql_events:, concurrent:, isolation:, fiber_count: 8)
+        with_ies_isolation(isolation) do
+          name = "sql.active_record"
+          # Prefer wall Time over Time.zone: switching IsolatedExecutionState.isolation_level
+          # can leave zone unset for the measuring Fiber.
+          finish_base = Time.now
+          Polyrun::Benchmark::Pressure.measure(
+            label: label,
+            ops: ops,
+            extras: {
+              "isolation_level" => isolation.to_s,
+              "fiber_count" => concurrent ? fiber_count : 1,
+              "sql_events" => sql_events
+            }
+          ) do
+            if concurrent
+              i = 0
+              while i < ops
+                batch = [fiber_count, ops - i].min
+                fibers = batch.times.map do |f|
+                  idx = i + f
+                  Fiber.new do
+                    GrapeRailsLogger::Timings.track_grape_request do
+                      sql_events.times do |j|
+                        start_t = finish_base + ((idx * sql_events + j) * 0.0001)
+                        finish_t = start_t + 0.002
+                        Fiber.yield if j.zero?
+                        GrapeRailsLogger::Timings.record_sql_notification(
+                          name, start_t, finish_t, "bench#{idx}-#{j}", {}
+                        )
+                      end
+                    end
+                  end
+                end
+                fibers.each(&:resume)
+                fibers.each(&:resume)
+                i += batch
+              end
+            else
+              ops.times do |idx|
+                GrapeRailsLogger::Timings.track_grape_request do
+                  sql_events.times do |j|
+                    start_t = finish_base + ((idx * sql_events + j) * 0.0001)
+                    finish_t = start_t + 0.002
+                    GrapeRailsLogger::Timings.record_sql_notification(
+                      name, start_t, finish_t, "bench#{idx}-#{j}", {}
+                    )
+                  end
+                end
+              end
+            end
+          end
+        end
       end
 
       def run_matrix!(reps, param_keys, sql_events, factor)
