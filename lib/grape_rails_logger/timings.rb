@@ -69,11 +69,11 @@ module GrapeRailsLogger
       case args.length
       when 5
         d = args[2] - args[1]
-        (d.is_a?(Numeric)) ? d.to_f : d
+        d.is_a?(Numeric) ? d.to_f : d
       when 1
         arg = args.first
         d = arg.duration if arg.respond_to?(:duration)
-        (d.is_a?(Numeric)) ? d.to_f : d
+        d.is_a?(Numeric) ? d.to_f : d
       end
     end
     private_class_method :sql_notification_duration
