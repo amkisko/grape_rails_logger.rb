@@ -122,7 +122,7 @@ module GrapeRailsLogger
           name = "sql.active_record"
           # Prefer wall Time over Time.zone: switching IsolatedExecutionState.isolation_level
           # can leave zone unset for the measuring Fiber.
-          finish_base = Time.now
+          finish_base = Time.now.utc
           Polyrun::Benchmark::Pressure.measure(
             label: label,
             ops: ops,

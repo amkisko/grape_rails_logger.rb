@@ -144,6 +144,8 @@ Metrics/ModuleLength:
   Enabled: true
   CountAsOne: [array, hash, heredoc, method_call]
   Max: 200
+  Exclude:
+    - benchmarks/load.rb
 Metrics/ClassLength:
   Enabled: true
   CountAsOne: [array, hash, heredoc, method_call]
