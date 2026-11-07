@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 1.2.4 (2026-11-07)
+
+- Cache `ActiveSupport::ParameterFilter` (and legacy `ParameterFilter`) per `filter_parameters` configuration
+- Use shallow param copy for flat hashes before in-place filtering; keep `deep_dup` when nested structures are present
+- Speed request log build: `nested_param_structure?` fast path, frozen downcased filter tokens, `PARAM_EXCEPTIONS` hash lookup, local `payload` in `build_log_data`
+- In `Timings.record_sql_notification`, derive duration from notification args without allocating `Event` when the payload matches the usual five-argument AS::Notifications shape
+
 ## 1.2.3 (2026-11-03)
 
 - Keep tracing and request instrumentation from dispatching a failed request more than once

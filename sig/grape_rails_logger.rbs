@@ -22,7 +22,7 @@ module GrapeRailsLogger
     def self.grape_request_active?: () -> bool
     def self.db_runtime: () -> Float
     def self.db_calls: () -> Integer
-    def self.append_db_runtime: (ActiveSupport::Notifications::Event event) -> void
+    def self.append_db_runtime: (ActiveSupport::Notifications::Event | Float | Integer event_or_duration) -> void
     def self.record_sql_notification: (*untyped args) -> void
   end
 
@@ -35,6 +35,8 @@ module GrapeRailsLogger
   end
 
   class GrapeRequestLogSubscriber
+    EMPTY_HASH: Hash[untyped, untyped]
+
     def initialize: () -> void
     def grape_request: (ActiveSupport::Notifications::Event event) -> void
   end

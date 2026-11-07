@@ -7,6 +7,9 @@ module GrapeRailsLogger
   # This class is designed to be exception-safe: any error in logging
   # is caught and logged separately, never breaking the request flow.
   class GrapeRequestLogSubscriber
+    API_ENDPOINT_ENV_KEY = Grape::Env::API_ENDPOINT
+    EMPTY_HASH = {}.freeze
+
     # Custom error class to distinguish logging errors from other errors
     class LoggingError < StandardError
       attr_reader :original_error
@@ -19,25 +22,33 @@ module GrapeRailsLogger
 
     # Key substrings aligned with Rails filter_parameters defaults (key-only; values pass through).
     FILTERED_PARAMS = %w[passw secret token _key crypt salt certificate otp ssn authorization].freeze
+    FILTERED_PARAMS_LOWER = FILTERED_PARAMS.map(&:downcase).freeze
     PARAM_EXCEPTIONS = %w[controller action format].freeze
+    PARAM_EXCEPTIONS_EXCLUDE = PARAM_EXCEPTIONS.each_with_object({}) { |k, h| h[k] = true }.freeze
+
+    def initialize
+      super
+      @parameter_filter_config = nil
+      @parameter_filter = nil
+    end
 
     def grape_request(event)
       return unless event.is_a?(ActiveSupport::Notifications::Event)
 
-      env = event.payload[:env]
+      payload = event.payload
+      env = payload[:env]
       return unless env.is_a?(Hash)
 
-      # Get logger from event payload (passed from middleware)
-      logger = event.payload[:logger]
+      logger = payload[:logger]
 
       logged_successfully = false
       begin
-        endpoint = env[Grape::Env::API_ENDPOINT] if env.is_a?(Hash)
+        endpoint = env[API_ENDPOINT_ENV_KEY]
         request = (endpoint&.respond_to?(:request) && endpoint.request) ? endpoint.request : nil
 
         data = build_log_data(event, request, env)
-        logged_successfully = log_data(data, event.payload[:exception_object], logger)
-        event.payload[:logged_successfully] = true if logged_successfully
+        logged_successfully = log_data(data, payload[:exception_object], logger)
+        payload[:logged_successfully] = true if logged_successfully
       rescue LoggingError
         # If logging itself failed, don't try to log again (would cause infinite loop or duplicates)
         # The error was already logged in safe_log's rescue block
@@ -60,18 +71,22 @@ module GrapeRailsLogger
     end
 
     def build_log_data(event, request, env)
-      db_runtime = event.payload[:db_runtime] || 0
-      db_calls = event.payload[:db_calls] || 0
+      payload = event.payload
+      db_runtime = payload[:db_runtime] || 0
+      db_calls = payload[:db_calls] || 0
       total_runtime = begin
         event.duration || 0
       rescue
         0
       end
 
-      status = extract_status(event) || (event.payload[:exception_object] ? 500 : 200)
+      exception_object = payload[:exception_object]
+      status = extract_status(event) || (exception_object ? 500 : 200)
       rails_request = rails_request_for(env)
       method = request ? safe_string(request.request_method) : safe_string(env["REQUEST_METHOD"])
       path = request ? safe_string(request.path) : safe_string(env["PATH_INFO"] || env["REQUEST_URI"])
+      duration_q = total_runtime.round(2)
+      db_q = db_runtime.round(2)
 
       {
         method: method,
@@ -84,9 +99,9 @@ module GrapeRailsLogger
         host: extract_host(rails_request, request),
         remote_addr: extract_remote_addr(rails_request, request),
         request_id: extract_request_id(rails_request, env),
-        duration: total_runtime.round(2),
-        db: db_runtime.round(2),
-        db_calls: db_calls,
+        duration: duration_q,
+        db: db_q,
+        db_calls: Integer(db_calls),
         params: filter_params(extract_params(request, env))
       }
     end
@@ -578,13 +593,13 @@ module GrapeRailsLogger
     end
 
     def extract_params(request, env = nil)
-      return {} unless env.is_a?(Hash)
+      return EMPTY_HASH unless env.is_a?(Hash)
 
-      endpoint = env[Grape::Env::API_ENDPOINT]
+      endpoint = env[API_ENDPOINT_ENV_KEY]
       return {} unless endpoint&.respond_to?(:request) && endpoint.request
 
       endpoint_params = endpoint.request.params
-      return {} if endpoint_params.blank?
+      return EMPTY_HASH if endpoint_params.blank?
 
       params_hash = if endpoint_params.respond_to?(:to_unsafe_h)
         endpoint_params.to_unsafe_h
@@ -728,22 +743,27 @@ module GrapeRailsLogger
     end
 
     def filter_params(params)
-      return {} unless params
+      return EMPTY_HASH unless params
       return {} unless params.is_a?(Hash)
 
       cleaned = if (filter = rails_parameter_filter)
         # Create a deep copy since filter modifies in place (Rails 6+)
-        params_copy = params.respond_to?(:deep_dup) ? params.deep_dup : params.dup
+        params_copy =
+          if nested_param_structure?(params)
+            params.respond_to?(:deep_dup) ? params.deep_dup : params.dup
+          else
+            params.dup
+          end
         filter.filter(params_copy)
       else
         filter_parameters_manually(params)
       end
 
-      cleaned.is_a?(Hash) ? cleaned.reject { |key, _| PARAM_EXCEPTIONS.include?(key.to_s) } : {}
+      cleaned.is_a?(Hash) ? cleaned.reject { |key, _| PARAM_EXCEPTIONS_EXCLUDE[key.to_s] } : {}
     rescue
       # Don't log - just fallback to manual filtering
       # Logging happens only in subscriber
-      filter_parameters_manually(params).reject { |key, _| PARAM_EXCEPTIONS.include?(key.to_s) }
+      filter_parameters_manually(params).reject { |key, _| PARAM_EXCEPTIONS_EXCLUDE[key.to_s] }
     end
 
     def rails_parameter_filter
@@ -754,19 +774,55 @@ module GrapeRailsLogger
       filter_parameters = Rails.application.config.filter_parameters
       return nil if filter_parameters.blank?
 
+      if filter_parameters.equal?(@parameter_filter_config) && @parameter_filter
+        return @parameter_filter
+      end
+
       # Prefer ActiveSupport::ParameterFilter (Rails 6.1+)
       # This is the Rails-native parameter filtering system
-      if defined?(ActiveSupport::ParameterFilter)
-        ActiveSupport::ParameterFilter.new(filter_parameters)
-      # Fall back to ActionDispatch::Http::ParameterFilter (Rails 6.0 and earlier)
-      elsif defined?(ActionDispatch::Http::ParameterFilter)
-        ActionDispatch::Http::ParameterFilter.new(filter_parameters)
-      end
+      built =
+        if defined?(ActiveSupport::ParameterFilter)
+          ActiveSupport::ParameterFilter.new(filter_parameters)
+        # Fall back to ActionDispatch::Http::ParameterFilter (Rails 6.0 and earlier)
+        elsif defined?(ActionDispatch::Http::ParameterFilter)
+          ActionDispatch::Http::ParameterFilter.new(filter_parameters)
+        end
+      return nil if built.nil?
+
+      @parameter_filter_config = filter_parameters
+      @parameter_filter = built
     rescue
       # Log but don't fail - fall back to manual filtering
       # Don't log - just return nil
       # Logging happens only in subscriber
       nil
+    end
+
+    def nested_param_structure?(params)
+      return false unless params.is_a?(Hash)
+      return false if params.empty?
+
+      return true if params.any? { |_, v| v.is_a?(Hash) }
+
+      params.each_value do |value|
+        next unless value.is_a?(Array)
+
+        return true if value.any? { |el| el.is_a?(Hash) }
+      end
+
+      stack = [params]
+      until stack.empty?
+        h = stack.pop
+        h.each_value do |value|
+          case value
+          when Hash
+            return true
+          when Array
+            value.each { |el| stack.push(el) if el.is_a?(Hash) }
+          end
+        end
+      end
+      false
     end
 
     def filter_parameters_manually(params, depth = 0)
@@ -799,8 +855,13 @@ module GrapeRailsLogger
     end
 
     def should_filter_key?(key)
-      key_lower = key.to_s.downcase
-      FILTERED_PARAMS.any? { |param| key_lower.include?(param.downcase) }
+      key_lower =
+        if key.is_a?(String)
+          key.downcase
+        else
+          key.to_s.downcase
+        end
+      FILTERED_PARAMS_LOWER.any? { |param| key_lower.include?(param) }
     end
   end
 end

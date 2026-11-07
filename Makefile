@@ -1,4 +1,7 @@
-.PHONY: release lint test audit clean
+.PHONY: release lint test audit clean bench-load
+
+bench-load:
+	bundle exec ruby benchmarks/load.rb
 
 release:
 	ruby usr/bin/release.rb

@@ -1,14 +1,8 @@
 # grape_rails_logger
 
-[![Gem Version](https://badge.fury.io/rb/grape_rails_logger.svg?v=1.2.3)](https://badge.fury.io/rb/grape_rails_logger) [![Test Status](https://github.com/amkisko/grape_rails_logger.rb/actions/workflows/test.yml/badge.svg)](https://github.com/amkisko/grape_rails_logger.rb/actions/workflows/test.yml) [![codecov](https://codecov.io/gh/amkisko/grape_rails_logger.rb/graph/badge.svg?token=RC5T0Y2Z5A)](https://app.codecov.io/github/amkisko/grape_rails_logger.rb)
+[![Gem Version](https://badge.fury.io/rb/grape_rails_logger.svg?v=1.2.4)](https://badge.fury.io/rb/grape_rails_logger) [![Test Status](https://github.com/amkisko/grape_rails_logger.rb/actions/workflows/test.yml/badge.svg)](https://github.com/amkisko/grape_rails_logger.rb/actions/workflows/test.yml) [![codecov](https://codecov.io/gh/amkisko/grape_rails_logger.rb/graph/badge.svg?token=RC5T0Y2Z5A)](https://app.codecov.io/github/amkisko/grape_rails_logger.rb)
 
 Rails-compatible structured logging for Grape APIs with ActiveRecord timing, parameter filtering, and exception tracking.
-
-Sponsored by [Kisko Labs](https://www.kiskolabs.com).
-
-<a href="https://www.kiskolabs.com">
-  <img src="kisko.svg" width="200" alt="Sponsored by Kisko Labs" />
-</a>
 
 ## Installation
 
@@ -120,3 +114,11 @@ usr/bin/release.rb
 ## License
 
 The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+
+## Sponsors
+
+Sponsored by [Kisko Labs](https://www.kiskolabs.com).
+
+<a href="https://www.kiskolabs.com">
+  <img src="kisko.svg" width="200" alt="Sponsored by Kisko Labs" />
+</a>

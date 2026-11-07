@@ -15,7 +15,7 @@ module GrapeRailsLogger
 
     def self.reset_db_runtime
       state = execution_state
-      state[:grape_db_runtime] = 0
+      state[:grape_db_runtime] = 0.0
       state[:grape_db_calls] = 0
     end
 
@@ -41,19 +41,41 @@ module GrapeRailsLogger
       execution_state[:grape_db_calls] ||= 0
     end
 
-    def self.append_db_runtime(event)
+    def self.append_db_runtime(event_or_duration)
       state = execution_state
       return unless state[:grape_db_tracking]
 
-      state[:grape_db_runtime] = (state[:grape_db_runtime] || 0) + event.duration
+      duration =
+        if event_or_duration.is_a?(Numeric)
+          event_or_duration
+        else
+          event_or_duration.duration
+        end
+      duration = duration.to_f if duration.is_a?(Numeric)
+      state[:grape_db_runtime] = (state[:grape_db_runtime] || 0) + duration
       state[:grape_db_calls] = (state[:grape_db_calls] || 0) + 1
     end
 
     # Railtie SQL subscribe entry: skip Event allocation when no Grape request is tracked.
     def self.record_sql_notification(*args)
-      return unless grape_request_active?
+      state = execution_state
+      return unless state[:grape_db_tracking]
 
-      append_db_runtime(ActiveSupport::Notifications::Event.new(*args))
+      duration = sql_notification_duration(args)
+      append_db_runtime(duration.nil? ? ActiveSupport::Notifications::Event.new(*args) : duration)
     end
+
+    def self.sql_notification_duration(args)
+      case args.length
+      when 5
+        d = args[2] - args[1]
+        (d.is_a?(Numeric)) ? d.to_f : d
+      when 1
+        arg = args.first
+        d = arg.duration if arg.respond_to?(:duration)
+        (d.is_a?(Numeric)) ? d.to_f : d
+      end
+    end
+    private_class_method :sql_notification_duration
   end
 end
